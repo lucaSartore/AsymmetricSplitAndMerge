@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug main",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [ "build" ],
+                "problemMatcher": "$rustc"
+            },
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [ "rust" ],
+            "stopOnEntry": false
+        },
+        {
+            "name": "Debug test",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [ "test", "--no-run" ],
+                "problemMatcher": "$rustc"
+            },
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": [ "rust" ],
+            "stopOnEntry": false
+        }
+    ]
+}
