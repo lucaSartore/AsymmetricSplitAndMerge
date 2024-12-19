@@ -81,3 +81,19 @@ fn test_split_parallel_to_x() {
     assert_eq!(c3.y_start,60);
     assert_eq!(c4.y_start,85);
 }
+
+#[test]
+fn test_unmanaged_mat_correct_disposal(){
+    let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg").expect("test file must be present");
+    let i = i.to_image_container_split();
+    let unmanaged_mat = unsafe {UnmanagedMat::from_image_container_split(&i)};
+    unsafe{ unmanaged_mat.destroy() };
+}  
+
+#[test]
+#[should_panic]
+fn test_unmanaged_mat_panic_on_drop(){
+    let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg").expect("test file must be present");
+    let i = i.to_image_container_split();
+    let _ = unsafe {UnmanagedMat::from_image_container_split(&i)};
+}

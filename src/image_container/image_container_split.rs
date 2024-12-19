@@ -3,6 +3,7 @@ use opencv::boxed_ref::BoxedRef;
 use opencv::prelude::*;
 use super::*;
 
+
 /// Structure that contains a rectangular split that starts from an ImageContainer
 #[derive(Debug)]
 pub struct ImageContainerSplit<'a> {
@@ -13,7 +14,10 @@ pub struct ImageContainerSplit<'a> {
     pub width: i32,
 }
 
+
+
 impl<'b> ImageContainerSplit<'b> {
+
     pub fn split(
         &'b self,
         direction: CutDirection,
