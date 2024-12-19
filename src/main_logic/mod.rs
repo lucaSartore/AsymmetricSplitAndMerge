@@ -2,7 +2,7 @@ use crate::image_container::*;
 use crate::logger_trait::LoggerTrait;
 use crate::merger_trait::MergerTrait;
 use crate::splitter_trait::SplitterTrait;
-use std::{borrow::Borrow, fmt::format, intrinsics::discriminant_value, sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread};
+use std::{ sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread};
 use anyhow::{anyhow,Result};
 
 
