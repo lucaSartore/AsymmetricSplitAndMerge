@@ -16,13 +16,13 @@ pub struct ImageContainerSplit<'a> {
 
 
 
-impl<'b> ImageContainerSplit<'b> {
+impl ImageContainerSplit<'_> {
 
     pub fn split(
-        &'b self,
+        &self,
         direction: CutDirection,
         split_at: i32,
-    ) -> Result<[ImageContainerSplit<'b>; 2]> {
+    ) -> Result<[ImageContainerSplit<'_>; 2]> {
 
         if split_at <= 0{
             return Err(anyhow!("split_at={} shall not be zero or negative",split_at))
