@@ -7,4 +7,4 @@ mod unmanaged_mat;
 pub use image_container_split::*;
 pub use image_container::*;
 pub use cut_direction::*;
-pub use  unmanaged_mat::*;
+pub use unmanaged_mat::*;

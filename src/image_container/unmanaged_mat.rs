@@ -22,7 +22,7 @@ impl Drop for UnmanagedMat {
 }
 
 #[inline]
-pub unsafe fn shallow_copy<T>(val: &T) -> T {
+unsafe fn shallow_copy<T>(val: &T) -> T {
     let mut result = std::mem::MaybeUninit::uninit();
     std::ptr::copy_nonoverlapping(
         val as *const T as *const u8,
