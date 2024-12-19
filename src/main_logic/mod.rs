@@ -2,16 +2,16 @@ use crate::image_container::*;
 use crate::logger_trait::LoggerTrait;
 use crate::merger_trait::MergerTrait;
 use crate::splitter_trait::SplitterTrait;
-use std::{fmt::format, sync::mpsc::{channel, Receiver, Sender}};
+use std::{borrow::Borrow, fmt::format, intrinsics::discriminant_value, sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread};
 use anyhow::{anyhow,Result};
 
-pub trait SplitMergeState {}
 
+pub trait SplitMergeState {}
 struct SplitState {
     yet_to_split_images: Vec<usize>,
     images_to_split_tx: Sender<(UnmanagedMat, usize)>,
-    images_to_split_rx: Receiver<(UnmanagedMat, usize)>,
-    split_result_tx: Sender<Option<(CutDirection, i32, usize)>>,
+    images_to_split_rx: Arc<Mutex<Receiver<(UnmanagedMat, usize)>>>,
+    split_result_tx: Arc<Mutex<Sender<Option<(CutDirection, i32, usize)>>>>,
     split_result_rx: Receiver<Option<(CutDirection, i32, usize)>>,
     items_in_queue: usize,
 }
@@ -48,8 +48,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
         let state = SplitState {
             yet_to_split_images: vec![0],
             images_to_split_tx,
-            images_to_split_rx,
-            split_result_tx,
+            images_to_split_rx: Arc::new(Mutex::new(images_to_split_rx)), 
+            split_result_tx: Arc::new(Mutex::new(split_result_tx)), 
             split_result_rx,
             items_in_queue: 0
         };
@@ -91,6 +91,24 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
     }
 
     fn launch_threads(&self, num_of_workers: usize){
+        for _ in 0..num_of_workers {
+            let rx = self.state.images_to_split_rx.clone();
+            let tx = self.state.split_result_tx.clone();
+            thread::spawn(move || -> Result<()>{
+                loop {
+                    let img = rx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
+                    let (img, id) = img.recv()?;
+                    let split_resut = S::split(&img.image);
+
+                    let tx_lock = tx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
+                    if let Some((direction, split_at)) = split_resut{
+                        tx_lock.send(Some((direction, split_at, id)))?;
+                    }else{
+                        tx_lock.send(None)?;
+                    }
+                }
+            });
+        }
     }
 
     fn send_split_request(&mut self) -> bool{
