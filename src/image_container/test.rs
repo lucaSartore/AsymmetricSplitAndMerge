@@ -1,5 +1,5 @@
 use super::*;
-use opencv::highgui::{imshow, wait_key};
+use opencv::core::MatTraitConst;
 
 
 fn verify_consistency(v: &ImageContainerSplit){
