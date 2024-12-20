@@ -178,7 +178,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
         self.state.items_in_queue -= 1;
 
-        let (direction, split_at, id) = match result {
+        let (direction, split_at, id_splitted) = match result {
             Some(e) => e,
             _ => return
         };
@@ -186,12 +186,20 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
         let id_1 = self.split_tree.len();
         let id_2 = id_1 + 1;
         
-        let [img_1, img_2] = self.split_tree[id].image.split(direction, split_at)
+        let [img_1, img_2] = self.split_tree[id_splitted].image.split(direction, split_at)
             .expect( &format!(
                 "the splitter has givven returned an invalid split configuraton: direction={:?} split_at={} ",
                 direction,
                 split_at
             ));
+
+        self.logger.log_split(
+            id_splitted,
+            [
+                Area::new_from_split(id_1, &img_1),
+                Area::new_from_split(id_2, &img_2)
+            ]
+        ).expect("logger trait has failed");
 
         unsafe{
             // the value is already borrowed immutably  by the split, therefore pushing should not
@@ -199,7 +207,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             // the  split tree is only referencing the c++ heap allocated object, and not any data
             // inside the vector, therefore we can do this
             let split_tree_ptr = &self.split_tree as *const Vec<_> as *mut Vec<SplitTree<'_>>;
-            (*split_tree_ptr)[id].childs = Some([id_1, id_2]);
+            (*split_tree_ptr)[id_splitted].childs = Some([id_1, id_2]);
             (*split_tree_ptr).push(SplitTree::new(id_1, img_1));
             (*split_tree_ptr).push(SplitTree::new(id_2, img_2));
         }

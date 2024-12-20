@@ -5,7 +5,8 @@ pub use crate::image_container::*;
 pub use crate::logger_trait::LoggerTrait;
 pub mod logger_traits {
     pub use crate::logger_trait::{
-        NullLogger 
+        NullLogger,
+        ImageLogger
     };
 }
 
