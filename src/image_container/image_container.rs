@@ -1,7 +1,5 @@
-use anyhow::Result;
+use crate::prelude::*;
 use opencv::imgcodecs::{imread, ImreadModes};
-use opencv::prelude::*;
-use super::*;
 
 /// Structure that contains the image that is been analyzed and split;
 #[derive(Debug)]

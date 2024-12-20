@@ -1,14 +1,8 @@
+use crate::prelude::*;
+use std::{ sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
+
 #[cfg(test)]
 mod test;
-
-
-use crate::image_container::*;
-use crate::logger_trait::LoggerTrait;
-use crate::merger_trait::MergerTrait;
-use crate::splitter_trait::SplitterTrait;
-use std::{ sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
-use anyhow::{anyhow,Result};
-
 
 pub trait SplitMergeState {}
 struct SplitState {

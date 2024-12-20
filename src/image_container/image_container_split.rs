@@ -1,7 +1,6 @@
+use crate::prelude::*;
 use anyhow::{anyhow, Result};
 use opencv::boxed_ref::BoxedRef;
-use opencv::prelude::*;
-use super::*;
 
 
 /// Structure that contains a rectangular split that starts from an ImageContainer

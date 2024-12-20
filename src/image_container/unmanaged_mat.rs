@@ -1,7 +1,6 @@
 use std::ffi::c_void;
-use opencv::prelude::*;
 use opencv::traits::Boxed;
-use super::*;
+use crate::prelude::*;
 
 
 /// represent a shallow copy of a Mat, that is a unsafe wrapper that simplify the coding removing

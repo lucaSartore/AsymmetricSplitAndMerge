@@ -1,7 +1,4 @@
-use crate::image_container::CutDirection;
-
-use super::SplitterTrait;
-
+use crate::prelude::*;
 
 /// BlindSplitter always decide to split up until a certain size
 pub struct BlindSplitter{

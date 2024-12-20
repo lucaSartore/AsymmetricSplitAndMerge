@@ -3,6 +3,7 @@ mod logger_trait;
 mod main_logic;
 mod merger_trait;
 mod splitter_trait;
+mod prelude;
 
 fn main() {
     let _a = 0;

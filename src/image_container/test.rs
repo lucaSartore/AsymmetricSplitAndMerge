@@ -1,6 +1,4 @@
-use super::*;
-use opencv::core::MatTraitConst;
-
+use crate::prelude::*;
 
 fn verify_consistency(v: &ImageContainerSplit){
     assert_eq!(v.image.size().expect("should't fail").width ,v.width);
