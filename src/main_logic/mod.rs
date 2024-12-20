@@ -1,8 +1,12 @@
+#[cfg(test)]
+mod test;
+
+
 use crate::image_container::*;
 use crate::logger_trait::LoggerTrait;
 use crate::merger_trait::MergerTrait;
 use crate::splitter_trait::SplitterTrait;
-use std::{ sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread};
+use std::{ sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use anyhow::{anyhow,Result};
 
 
@@ -67,7 +71,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
     pub fn execute_split(mut self, num_of_workers: usize) -> MainLogic<'a, S, M, L, MergeState>{
 
-        self.launch_threads(num_of_workers);
+        let join_handlers = self.launch_threads(num_of_workers);
 
         loop {
             // send all necessary split requests
@@ -79,6 +83,10 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             // elaborate eventual received results
             self.receive_split_result();
         }
+
+        join_handlers.into_iter().for_each(|x| {
+            let _ = x.join().expect("one of the threads has exited unsuccessfully");
+        });
     
         return MainLogic{
             image: self.image,
@@ -88,27 +96,31 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             state: MergeState{},
             split_tree: self.split_tree
         }
+
     }
 
-    fn launch_threads(&self, num_of_workers: usize){
+    fn launch_threads(&self, num_of_workers: usize) -> Vec<JoinHandle<Result<()>>>{
+        let mut join_handlers = Vec::new();
         for _ in 0..num_of_workers {
             let rx = self.state.images_to_split_rx.clone();
             let tx = self.state.split_result_tx.clone();
-            thread::spawn(move || -> Result<()>{
+            // I am sure that this reference will stay valid for as long as the thread below exist
+            let splitter: &'static S = unsafe {std::mem::transmute(&self.splitter)};
+            join_handlers.push(thread::spawn(move || -> Result<()>{
                 loop {
                     let img = rx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
                     let (img, id) = img.recv()?;
-                    let split_resut = S::split(&img.image);
-
+                    let split_result = splitter.split(&img.image);
                     let tx_lock = tx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
-                    if let Some((direction, split_at)) = split_resut{
+                    if let Some((direction, split_at)) = split_result{
                         tx_lock.send(Some((direction, split_at, id)))?;
                     }else{
                         tx_lock.send(None)?;
                     }
                 }
-            });
+            }));
         }
+        return join_handlers
     }
 
     fn send_split_request(&mut self) -> bool{
