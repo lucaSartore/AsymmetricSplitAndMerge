@@ -23,5 +23,13 @@ pub mod splitter_traits {
     };
 }
 
+pub use crate::main_logic::*;
+
 pub use opencv::prelude::*;
 pub use anyhow::{anyhow,Result};
+
+pub use log::{
+    info,
+    warn,
+    error
+};

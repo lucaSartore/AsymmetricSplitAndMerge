@@ -2,6 +2,11 @@ use super::LoggerTrait;
 
 /// a logger that dose nothing (and also don't impact performance..)
 pub struct NullLogger{}
+impl NullLogger {
+    pub fn new() -> Self{
+        Self{}
+    }
+}
 impl LoggerTrait for NullLogger {
     fn log_split(&mut self, _direction: super::CutDirection, _split_at: i32) -> anyhow::Result<()> {
         Ok(())

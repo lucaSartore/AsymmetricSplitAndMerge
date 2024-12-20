@@ -1,14 +1,17 @@
 use crate::prelude::*;
+
+use super::MainLogic;
 #[test]
 fn test_split_simple(){
-let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg").expect("test file must be present");
-    let i = i.to_image_container_split();
+    let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg").expect("test file must be present");
 
-    let _ = i.split(CutDirection::CutParallelToY, 200).expect_err("this split should fail");
-    let _ = i.split(CutDirection::CutParallelToY, 199).expect("this split should not fail");
+    let splitter = splitter_traits::BlindSplitter::new(10);
+    let merger = merger_traits::BlindMerger::new();
+    let logger = logger_traits::NullLogger::new();
 
-    let _ = i.split(CutDirection::CutParallelToX, 100).expect_err("this split should fail");
-    let _ = i.split(CutDirection::CutParallelToX, 99).expect("this split should not fail");
+    let logic = MainLogic::new(splitter, merger, logger, &i);
+
+    let _ = logic.execute_split(4);
 }
 
 

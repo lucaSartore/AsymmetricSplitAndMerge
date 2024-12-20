@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 opencv = "0.93.5"
 anyhow = "^1.0.94"
+log = "0.4"
+env_logger = "0.11.5"

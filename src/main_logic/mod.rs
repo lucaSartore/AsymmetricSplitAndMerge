@@ -5,7 +5,8 @@ use std::{ sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread::{self,
 mod test;
 
 pub trait SplitMergeState {}
-struct SplitState {
+
+pub struct SplitState {
     yet_to_split_images: Vec<usize>,
     images_to_split_tx: Sender<(UnmanagedMat, usize)>,
     images_to_split_rx: Arc<Mutex<Receiver<(UnmanagedMat, usize)>>>,
@@ -15,7 +16,7 @@ struct SplitState {
 }
 impl SplitMergeState for SplitState {}
 
-struct MergeState {}
+pub struct MergeState {}
 impl SplitMergeState for MergeState {}
 
 /// the main logic that contains all the code that is general for all variant of the split and
@@ -65,22 +66,38 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
     pub fn execute_split(mut self, num_of_workers: usize) -> MainLogic<'a, S, M, L, MergeState>{
 
+        info!("Start thread spawning");
         let join_handlers = self.launch_threads(num_of_workers);
+        info!("Done with thread spawning");
 
+        info!("Starting execute split loop");
         loop {
             // send all necessary split requests
-            while !self.send_split_request() {};
+            info!("main thread: start sending");
+            while self.send_split_request() {
+                info!{"main thread send one piece"}
+            };
+            info!("main thread: end sending");
             // if we no longer have anything to 
             if self.state.items_in_queue == 0 {
                 break;
             }
             // elaborate eventual received results
+            info!("main thread: start receive");
             self.receive_split_result();
+            info!("main thread: end receive");
         }
 
+        info!("Exited execute split loop");
+
+        drop(self.state.images_to_split_tx);
+        drop(self.state.split_result_rx);
+
+        info!("Start thread join");
         join_handlers.into_iter().for_each(|x| {
             let _ = x.join().expect("one of the threads has exited unsuccessfully");
         });
+        info!("Done thread join");
     
         return MainLogic{
             image: self.image,
@@ -95,22 +112,35 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
     fn launch_threads(&self, num_of_workers: usize) -> Vec<JoinHandle<Result<()>>>{
         let mut join_handlers = Vec::new();
-        for _ in 0..num_of_workers {
+        for i in 0..num_of_workers {
             let rx = self.state.images_to_split_rx.clone();
             let tx = self.state.split_result_tx.clone();
             // I am sure that this reference will stay valid for as long as the thread below exist
             let splitter: &'static S = unsafe {std::mem::transmute(&self.splitter)};
             join_handlers.push(thread::spawn(move || -> Result<()>{
+                info!("thread {i} started");
                 loop {
-                    let img = rx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
-                    let (img, id) = img.recv()?;
+                    info!("thread {i} rx lock");
+                    let rx_locked = rx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
+                    info!("thread {i} rx locked");
+
+                    let (img, id) = rx_locked.recv()?;
+                    info!("thread {i} receive id={id}");
+
                     let split_result = splitter.split(&img.image);
+                    info!("thread {i} split result = {:?}", split_result);
+
+                    info!("thread {i} tx lock");
                     let tx_lock = tx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
+                    info!("thread {i} tx locked");
+                    
                     if let Some((direction, split_at)) = split_result{
-                        tx_lock.send(Some((direction, split_at, id)))?;
+                        tx_lock.send(Some((direction, split_at, id))).expect("send messages should never fail");
                     }else{
-                        tx_lock.send(None)?;
+                        tx_lock.send(None).expect("send messages should never fail");
                     }
+                    img.destroy();
+                    info!("thread {i} successfly processed id={id}");
                 }
             }));
         }
@@ -124,6 +154,9 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             Some(e) => e,
             _ => return false
         };
+
+        info!("main thread send request for id={to_split_id}");
+
         let to_split = &self.split_tree[to_split_id].image;
         let to_split = unsafe{ UnmanagedMat::from_image_container_split(to_split) };
 
@@ -138,8 +171,10 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
         
         assert_ne!(self.state.items_in_queue,0,"can't receive a message if there are no items in the queue, as doing so would deadlock the program");
 
+        info!{"start listening with {} elements",self.state.items_in_queue};
         let result = self.state.split_result_rx.recv()
             .expect("there should always be a thread listening");
+        info!{"got result: {:?}",result};
 
         self.state.items_in_queue -= 1;
 
@@ -169,6 +204,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             (*split_tree_ptr).push(SplitTree::new(id_2, img_2));
         }
 
+        self.state.yet_to_split_images.push(id_1);
+        self.state.yet_to_split_images.push(id_2);
     }
 
 }
