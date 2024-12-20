@@ -8,14 +8,15 @@ impl NullLogger {
     }
 }
 impl LoggerTrait for NullLogger {
-    fn log_split(&mut self, _direction: super::CutDirection, _split_at: i32) -> anyhow::Result<()> {
+    fn log_split(&mut self, _area_to_split_id: usize, _splits: [super::Area;2]) -> anyhow::Result<()> {
         Ok(())
     }
 
-    fn log_merge(&mut self) -> anyhow::Result<()> {
+    fn log_merge(&mut self, _to_merge: [usize;2]) -> anyhow::Result<()> {
         Ok(())
     }
 
-    fn finalize_log(&mut self) { }
+    fn finalize_log(&mut self) {
+    }
 }
 
