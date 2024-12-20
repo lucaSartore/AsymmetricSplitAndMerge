@@ -83,6 +83,7 @@ impl ImageLogger {
             morphology_default_border_value().expect("unable to create border value")
         ).expect("erosion has failed");
 
+
         self.input_image.copy_to_masked(&mut self.output_image, &second_mask).expect("matrix copy has failed");
 
     }

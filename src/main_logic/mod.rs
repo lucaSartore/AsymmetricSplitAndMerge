@@ -1,3 +1,5 @@
+use opencv::highgui::{imshow, wait_key};
+
 use crate::prelude::*;
 use std::{ sync::{mpsc::{channel, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 

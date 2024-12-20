@@ -61,7 +61,7 @@ impl From<&ImageContainerSplit<'_>> for AreaMarker {
             height: value.height,
             width: value.width,
             y_start: value.y_start,
-            x_start: value.y_start,
+            x_start: value.x_start,
         }
     }
 }
