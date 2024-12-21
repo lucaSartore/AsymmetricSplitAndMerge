@@ -9,7 +9,7 @@ impl BlindMerger {
 }
 
 impl MergerTrait for BlindMerger {
-    fn merge(&self, _mask_a: &UnmanagedMat, _mask_b: &UnmanagedMat, _image: &Mat) -> bool {
+    fn merge(&self, _mask_a: &Mat, _mask_b: &Mat, _image: &Mat) -> bool {
         return true
     }
 }
