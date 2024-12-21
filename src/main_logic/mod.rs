@@ -2,6 +2,8 @@
 mod test;
 mod split_phase;
 mod split_tree;
+mod merge_phase;
+mod disjoint_set;
 
 use split_tree::*;
 
