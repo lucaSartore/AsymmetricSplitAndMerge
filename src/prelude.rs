@@ -14,7 +14,8 @@ pub mod logger_traits {
 pub use crate::merger_trait::MergerTrait;
 pub mod merger_traits {
     pub use crate::merger_trait::{
-        BlindMerger
+        BlindMerger,
+        ColorBasedMerger,
     };
 }
 
