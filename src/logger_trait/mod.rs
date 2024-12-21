@@ -14,6 +14,6 @@ pub use on_screen_logger::OnStreenLogger;
 /// a small video, an option that dose nothing and dose not impact performances eccetera
 pub trait LoggerTrait{
     fn log_split(&mut self, area_to_split_id: usize, splits: [Area;2]) -> Result<()>;
-    fn log_merge(&mut self, to_merge: [usize;2]) -> Result<()>;
+    fn log_merge(&mut self, new_item_id: usize, to_merge: [usize;2]) -> Result<()>;
     fn finalize_log(&mut self);
 }

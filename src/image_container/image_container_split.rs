@@ -76,7 +76,7 @@ impl ImageContainerSplit<'_> {
             let a_end = a_start + a_len;
             let b_end = b_start + b_len;
             
-            return (a_start-b_end).abs() == 1 || (b_start - a_end).abs() == 1;
+            return a_start == b_end || b_start == a_end;
         }
 
         //      ■

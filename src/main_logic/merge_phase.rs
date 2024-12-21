@@ -1,5 +1,3 @@
-use std::{borrow::BorrowMut, iter::Enumerate, ptr::null};
-
 use super::*;
 
 impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L, MergeState> {
@@ -12,12 +10,15 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
         let join_handlers = self.launch_threads(num_of_workers);
 
         loop {
+            info!("start sending split requests");
             let num_requests = self.send_merge_request();
+            info!("main thread: sent {num_requests} requests");
 
             if num_requests == 0 {
                 break;
             }
 
+            info!("start receiving split requests");
             self.receive_merge_result(num_requests);
         }
 
@@ -57,6 +58,11 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                 // do not check for stuff that has already been check
                 if self.state.already_checked_mgerges.contains(&[*id_a, *id_b]) {
                     continue;
+                }
+
+                if !(self.state.disjoint_sets.is_root_item(*id_a) &&
+                   self.state.disjoint_sets.is_root_item(*id_b)) {
+                    continue
                 }
 
                 self.state.already_checked_mgerges.insert([*id_a, *id_b]);
@@ -111,6 +117,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                 let (a_id, a_mat) = v[i];
                 let (b_id, b_mat) = v[j];
                 if ImageContainerSplit::are_neighbors(a_mat, b_mat) {
+                    info!("set as neighbors {a_id} {b_id}");
                     self.state
                         .disjoint_sets
                         .set_as_neighbors(a_id, b_id)
@@ -127,7 +134,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             let tx = self.state.merge_result_tx.clone();
             // I am sure that this reference will stay valid for as long as the thread below exist
             let merger: &'static M = unsafe { std::mem::transmute(&self.merger) };
-            let image: &'static Mat = unsafe { std::mem::transmute(&self.image) };
+            // let image: &'static Mat = unsafe { std::mem::transmute(&self.image) };
+            let image = self.image.image.clone();
             join_handlers.push(thread::spawn(move || -> Result<()> {
                 info!("thread {i} started");
                 loop {
@@ -138,7 +146,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                     let (img_a, id_a, img_b, id_b) = rx_locked.recv()?;
                     info!("thread {i} receive id=[{id_a},{id_b}]");
 
-                    let merge_result = merger.merge(&img_a.image, &img_b.image, image);
+                    // let merge_result = true;
+                    let merge_result = merger.merge(&img_a.image, &img_b.image, &image);
                     info!("thread {i} merge result = {:?}", merge_result);
 
                     info!("thread {i} tx lock");
@@ -159,6 +168,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
     fn receive_merge_result(&mut self, to_receive: usize) {
         for _ in 0..to_receive {
+
             let (to_merge, id_a, id_b) = self
                 .state
                 .merge_result_rx
@@ -168,9 +178,14 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             if !to_merge {
                 continue;
             }
-
+            
             let new_item_id = self.state.next_area_id;
             self.state.next_area_id += 1;
+
+            let id_a = self.state.disjoint_sets.get_father_of(id_a)
+                .expect("error in receive merge result");
+            let id_b = self.state.disjoint_sets.get_father_of(id_b)
+                .expect("error in receive merge result");
 
             let area_a = self
                 .state
@@ -190,12 +205,13 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             let area_a = unsafe { &*area_a };
             let area_b = unsafe { &*area_b };
 
+
             let marker =
                 AreaMarker::merge(area_a, area_b).expect("error in creation of merge marker");
 
             let area = Area::new_from_id_and_marker(new_item_id, marker);
 
-            self.logger.log_merge([id_a,id_b])
+            self.logger.log_merge(new_item_id, [id_a,id_b])
                 .expect("logger has failed");
 
             self.state.areas.insert(new_item_id, area);
@@ -203,7 +219,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             self.state
                 .disjoint_sets
                 .create_new(new_item_id, [id_a, id_b])
-                .expect("error in recieve merge result")
+                .expect("error in recieve merge result");
         }
     }
 }

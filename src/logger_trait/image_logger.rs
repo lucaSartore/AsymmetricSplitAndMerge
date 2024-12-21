@@ -155,7 +155,35 @@ impl LoggerTrait for ImageLogger {
 
         Ok(())
     }
-    fn log_merge(&mut self, to_merge: [usize; 2]) -> Result<()> {
+    fn log_merge(&mut self, new_item_id: usize, to_merge: [usize; 2]) -> Result<()> {
+        let [a,b] = to_merge;
+
+        let area_a = self
+            .areas
+            .get_mut(&a)
+            .ok_or(anyhow!("item not found: {a}"))?;
+        let area_a_color = area_a.color.clone();
+        let area_a = area_a.get_mat_area(&self.input_image) as *const Mat;
+
+        let area_b = self
+            .areas
+            .get_mut(&b)
+            .ok_or(anyhow!("item not found: {b}"))?
+            .get_mat_area(&self.input_image) as *const Mat;
+
+        // the reference are still valid since we haven't touch the hashmap
+        // (there is a mutable borrow only for the call to get_mat_area)
+        let area_a = unsafe { &*area_a };
+        let area_b = unsafe { &*area_b };
+
+        let marker = AreaMarker::merge(area_a, area_b)?;
+
+        let area = Area::new_from_id_and_marker(new_item_id, marker);
+
+        let area = ColoredArea::new(area_a_color, area);
+        self.areas.insert(new_item_id, area);
+        self.color_area(new_item_id);
+
         Ok(())
     }
     fn finalize_log(&mut self) {}

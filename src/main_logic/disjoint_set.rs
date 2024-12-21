@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, cell::RefCell, collections::{hash_set::Iter, HashMap, HashSet}};
+use std::{cell::RefCell, collections::{hash_set::Iter, HashMap, HashSet}};
 use crate::prelude::*;
 
 
@@ -18,13 +18,24 @@ impl DisjointSets{
         return self.items.get(&id);
     }
 
+    pub fn get_father_of(&self, id: usize) -> Option<usize> {
+        return Some(self.items.get(&id)?.get_father(self))
+    }
+
+    pub fn is_root_item(&self, id: usize) -> bool {
+        return self.root_items.contains(&id);
+    }
+
     pub fn create_new(&mut self, new_item_id: usize, childrends: [usize;2]) -> Result<()> {
 
         let [c1,c2] = childrends; 
 
-        if self.root_items.get(&c1).is_none() || self.root_items.get(&c2).is_none(){
-            return Err(anyhow!("impossible to merge tow non root IDs"));
-        }
+        let c1 = self.items.get(&c1)
+            .ok_or(anyhow!("unable to find the id {c1}"))?
+            .get_father(self);
+        let c2 = self.items.get(&c2)
+            .ok_or(anyhow!("unable to find the id {c2}"))?
+            .get_father(self);
         
         self.items[&c1].set_father(new_item_id);
         self.items[&c2].set_father(new_item_id);
@@ -35,13 +46,17 @@ impl DisjointSets{
             neighbors: Vec::new()
         });
 
-        let neighbors = self.items[&c1].neighbors.iter()
+        info!("start");
+        let neighbors: Vec<_> = self.items[&c1].neighbors.iter()
             .chain(self.items[&c2].neighbors.iter())
             .filter(|x| {
                 self.items[&x].get_father(self) != new_item_id
             })
             .map(|x| *x)
+            .collect::<HashSet<_>>() // unique ids
+            .into_iter()
             .collect();
+        info!("end, len: {}",neighbors.len());
 
         self.items.get_mut(&new_item_id)
             .expect("error in code of disjoint set building")

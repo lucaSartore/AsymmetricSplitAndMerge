@@ -11,7 +11,6 @@
             },
             "cwd": "${workspaceFolder}",
             "sourceLanguages": [ "rust" ],
-            "stopOnEntry": false
         },
         {
             "name": "Debug test",

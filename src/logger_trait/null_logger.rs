@@ -12,7 +12,7 @@ impl LoggerTrait for NullLogger {
         Ok(())
     }
 
-    fn log_merge(&mut self, _to_merge: [usize;2]) -> anyhow::Result<()> {
+    fn log_merge(&mut self,_new_item_id: usize, _to_merge: [usize;2]) -> anyhow::Result<()> {
         Ok(())
     }
 
