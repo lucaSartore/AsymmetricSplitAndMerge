@@ -85,7 +85,7 @@ fn test_unmanaged_mat_correct_disposal(){
     let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg").expect("test file must be present");
     let i = i.to_image_container_split();
     let unmanaged_mat = unsafe {UnmanagedMat::from_image_container_split(&i)};
-    unsafe{ unmanaged_mat.destroy() };
+    unmanaged_mat.destroy();
 }  
 
 #[test]

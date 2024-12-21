@@ -31,6 +31,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
         });
         info!("Done thread join");
 
+        self.logger.finalize_log();
+
         return MainLogic {
             image: self.image,
             splitter: self.splitter,
