@@ -1,13 +1,18 @@
-use std::{borrow::BorrowMut, cell::RefCell, collections::{HashMap, HashSet}};
+use std::{borrow::BorrowMut, cell::RefCell, collections::{hash_set::Iter, HashMap, HashSet}};
 use crate::prelude::*;
 
 
+#[derive(Debug,Default)]
 pub struct DisjointSets{
     items: HashMap<usize, DisjointSet>,
     root_items: HashSet<usize>
 }
 
 impl DisjointSets{
+
+    pub fn get_root_items(&self) -> Iter<'_,usize>{
+        return self.root_items.iter()
+    }
 
     pub fn get_set(&self, id: usize) -> Option<&DisjointSet>{
         return self.items.get(&id);
@@ -73,6 +78,7 @@ impl DisjointSets{
 }
 
 
+#[derive(Debug)]
 pub struct DisjointSet{
     id: usize,
     set_father: RefCell<usize>,
@@ -93,5 +99,8 @@ impl DisjointSet {
     }
     pub fn set_father(&self, new_father: usize) {
         *self.set_father.borrow_mut() = new_father;
+    }
+    pub fn get_neighbors(&self) -> &[usize]{
+        return &self.neighbors;
     }
 }

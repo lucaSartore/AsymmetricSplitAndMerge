@@ -40,6 +40,14 @@ impl UnmanagedMat {
         return Self{image}
     }
 
+    /// this function is unsafe as the caller must ensure that the borrowed ImageContainerSplit
+    /// must stay in scope for as long as this UnmanagedMat is in scope
+    pub unsafe fn from_mat(img: &impl MatTrait) -> Self {
+        let ptr = img.as_raw_Mat();
+        let image = Mat::from_raw(ptr as *mut c_void);
+        return Self{image}
+    }
+
     pub fn destroy(self){
         let mat = unsafe{shallow_copy(&self.image)};
         std::mem::forget(mat);

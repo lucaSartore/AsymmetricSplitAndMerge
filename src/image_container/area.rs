@@ -53,6 +53,12 @@ impl AreaMarker {
 
         *self = Self::MaskedArea(new_mask)
     }
+
+    pub fn merge(area_1: &Mat, area_2: &Mat) -> Result<Self>{
+        let mut result = Mat::default();
+        opencv::core::bitwise_or(&area_1, &area_2, &mut result, &Mat::default())?;
+        return Ok(Self::MaskedArea(result))
+    }
 }
 
 impl From<&ImageContainerSplit<'_>> for AreaMarker {
@@ -84,6 +90,11 @@ impl Area {
             },
         };
     }
+    
+    pub fn new_from_id_and_marker(id: usize, marker: AreaMarker) -> Self{
+        return Self{id,marker}
+    }
+
     pub fn new_from_split(id: usize,split: &ImageContainerSplit<'_>) -> Self {
         return Self {
             id,

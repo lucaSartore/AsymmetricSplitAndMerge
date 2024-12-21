@@ -16,7 +16,7 @@ fn main() {
 
 
     // let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg").expect("test file must be present");
-    let i = ImageContainer::new_from_file_color("./test_images/fruits.jpg").expect("test file must be present");
+    let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg").expect("test file must be present");
 
     let splitter = splitter_traits::BlindSplitter::new(50);
     let merger = merger_traits::BlindMerger::new();
@@ -24,5 +24,6 @@ fn main() {
 
     let logic = MainLogic::new(splitter, merger, logger, &i);
 
-    let _ = logic.execute_split(4);
+    let logic = logic.execute_split(4);
+    let logic = logic.execute_merge(4);
 }

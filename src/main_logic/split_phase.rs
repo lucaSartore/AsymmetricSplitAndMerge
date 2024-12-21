@@ -72,7 +72,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             splitter: self.splitter,
             merger: self.merger,
             logger: self.logger,
-            state: MergeState{},
+            state: MergeState::default(),
             split_tree: self.split_tree
         }
 
