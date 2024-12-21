@@ -7,7 +7,8 @@ pub mod logger_traits {
     pub use crate::logger_trait::{
         NullLogger,
         ImageLogger,
-        OnScreenLogger
+        OnScreenLogger,
+        OnDiskLogger
     };
 }
 
