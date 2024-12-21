@@ -4,7 +4,6 @@ mod main_logic;
 mod merger_trait;
 mod splitter_trait;
 mod prelude;
-use opencv::highgui::{imshow, wait_key};
 use prelude::*;
 
 use env_logger;

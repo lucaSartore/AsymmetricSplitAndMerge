@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use opencv::{
     core::{self, VecN}, imgproc, prelude::*, types, Error
 };
