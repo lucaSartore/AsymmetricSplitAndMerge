@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use super::LoggerTrait;
 
 /// a logger that dose nothing (and also don't impact performance..)
