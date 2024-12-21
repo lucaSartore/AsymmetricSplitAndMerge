@@ -59,5 +59,37 @@ impl ImageContainerSplit<'_> {
                 width: if x_split { self.width } else { self.width - split_at },
             },
         ]);
+
+    }
+
+    pub fn are_neighbors(a: &Self, b: &Self) -> bool{
+        
+        fn overlap(a_start: i32, a_len: i32, b_start: i32, b_len: i32) -> bool{
+            let a_end = a_start + a_len;
+            let b_end = b_start + b_len;
+            
+            let no_overlap = a_end < b_start || b_end < a_start;
+            return !no_overlap;
+        }
+
+        fn touch(a_start: i32, a_len: i32, b_start: i32, b_len: i32) -> bool{
+            let a_end = a_start + a_len;
+            let b_end = b_start + b_len;
+            
+            return (a_start-b_end).abs() == 1 || (b_start - a_end).abs() == 1;
+        }
+
+        //      ■
+        //  ■   ■
+        //  ■
+        let horizontal_overlap = overlap(a.y_start,a.height,b.y_start,b.height);
+        let horizontal_touch = touch(a.x_start, a.width, b.x_start, b.width);
+        //    ■■■
+        //  ■■■■
+        let vertical_overlap = overlap(a.x_start, a.width, b.x_start, b.width);
+        let vertical_touch = touch(a.y_start,a.height,b.y_start,b.height);
+        
+        return (horizontal_touch && horizontal_overlap) ||
+               (vertical_touch && vertical_overlap)
     }
 }
