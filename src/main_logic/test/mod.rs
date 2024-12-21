@@ -38,7 +38,7 @@ fn test_correct_splitting(){
 
     struct TestLogger{image: Mat}
     impl LoggerTrait for TestLogger {
-        fn log_split(&mut self, area_to_split_id: usize, splits: [Area;2]) -> Result<()> {
+        fn log_split(&mut self, _area_to_split_id: usize, splits: [Area;2]) -> Result<()> {
             let [mut a1, mut a2] = splits;
             let mask_a1 = a1.get_mat_area(&self.image);
             let mask_a2 = a2.get_mat_area(&self.image);
@@ -50,7 +50,7 @@ fn test_correct_splitting(){
             return Ok(());
         }
 
-        fn log_merge(&mut self, to_merge: [usize;2]) -> Result<()> { Ok(())}
+        fn log_merge(&mut self, _new_item_id: usize,  _to_merge: [usize;2]) -> Result<()> { Ok(())}
 
         fn finalize_log(&mut self) { }
     }
