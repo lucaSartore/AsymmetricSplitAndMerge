@@ -46,7 +46,6 @@ impl DisjointSets{
             neighbors: Vec::new()
         });
 
-        info!("start");
         let neighbors: Vec<_> = self.items[&c1].neighbors.iter()
             .chain(self.items[&c2].neighbors.iter())
             .filter(|x| {
@@ -56,7 +55,6 @@ impl DisjointSets{
             .collect::<HashSet<_>>() // unique ids
             .into_iter()
             .collect();
-        info!("end, len: {}",neighbors.len());
 
         self.items.get_mut(&new_item_id)
             .expect("error in code of disjoint set building")

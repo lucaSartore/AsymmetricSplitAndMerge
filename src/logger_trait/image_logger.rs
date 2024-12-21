@@ -43,10 +43,6 @@ impl ColoredArea {
         let mut mat_output = mat_input.clone();
 
         let p: &mut VecN<f32, 3> = mat_input.at_mut(0).expect("");
-        info!("{}",rand::random::<f32>());
-        info!("{}",rand::random::<f32>());
-        info!("{}",rand::random::<f32>());
-        info!("{}",rand::random::<f32>());
         p[0] = rand::random::<f32>()*255.0;
 
         p[1] = 1.;
