@@ -19,7 +19,7 @@ fn main() {
 
     let splitter = splitter_traits::BlindSplitter::new(75);
     let merger = merger_traits::BlindMerger::new();
-    let logger = logger_traits::OnStreenLogger::new(i.image.clone(), "log".into());
+    let logger = logger_traits::OnScreenLogger::new(i.image.clone(), "log".into());
     // let logger = logger_traits::NullLogger::new();
 
     let logic = MainLogic::new(splitter, merger, logger, &i);

@@ -1,12 +1,12 @@
 use opencv::highgui::{imshow, wait_key};
 
 use super::*;
-pub struct OnStreenLogger{
+pub struct OnScreenLogger{
     image_logger: ImageLogger,
     log_window_name: String
 }
 
-impl OnStreenLogger {
+impl OnScreenLogger {
     pub fn new(image: Mat, log_window_name: String) -> Self {
         Self{
             image_logger: ImageLogger::new(image),
@@ -15,7 +15,7 @@ impl OnStreenLogger {
     }
 }
 
-impl LoggerTrait for OnStreenLogger {
+impl LoggerTrait for OnScreenLogger {
     fn log_split(&mut self, area_to_split_id: usize, splits: [Area;2]) -> Result<()> {
         self.image_logger.log_split(area_to_split_id, splits)?;
         imshow(&self.log_window_name, self.image_logger.get_mat_ref())?;

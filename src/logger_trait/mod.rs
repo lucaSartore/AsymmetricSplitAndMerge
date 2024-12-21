@@ -7,7 +7,7 @@ mod image_logger;
 pub use image_logger::ImageLogger;
 
 mod on_screen_logger;
-pub use on_screen_logger::OnStreenLogger;
+pub use on_screen_logger::OnScreenLogger;
 
 /// trait used to log the behaviour of the split and merge algorithm, there can be different
 /// implementations including one that show the progress in rial time, one that save the result on
