@@ -22,6 +22,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             self.receive_merge_result(num_requests);
         }
 
+        drop(self.state.images_to_merge_tx);
+        drop(self.state.merge_result_rx);
 
         info!("Start thread join");
         join_handlers.into_iter().for_each(|x| {
@@ -186,6 +188,10 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                 .expect("error in receive merge result");
             let id_b = self.state.disjoint_sets.get_father_of(id_b)
                 .expect("error in receive merge result");
+
+            if id_a == id_b {
+                continue;
+            }
 
             let area_a = self
                 .state
