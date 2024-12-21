@@ -14,4 +14,13 @@ impl<'a> SplitTree<'a> {
             childs: None
         };
     } 
+
+    pub fn collect_leafs(&'a self, others: &'a [SplitTree<'a>], accumulator: &mut Vec<(usize,&ImageContainerSplit<'a>)>){
+        if let Some([a,b]) = self.childs{
+            others[a].collect_leafs(others, accumulator);
+            others[b].collect_leafs(others, accumulator);
+        }else{
+            accumulator.push((self.id, &self.image));
+        }
+    }
 }
