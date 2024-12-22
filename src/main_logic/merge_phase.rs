@@ -169,6 +169,9 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
         for [id_a, id_b] in to_merge_vec {
 
+            // assert!(self.state.disjoint_sets.is_root_item(id_a));
+            // assert!(self.state.disjoint_sets.is_root_item(id_b));
+
             let new_item_id = self.state.next_area_id; 
             self.state.next_area_id += 1;
 

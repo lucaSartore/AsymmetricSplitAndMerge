@@ -31,6 +31,9 @@ impl DisjointSets {
                 already_present_items.insert(*a);
                 already_present_items.insert(*b);
                 to_return.push([*a,*b]);
+                // ad this point a has been insert, therefore no iteration of this for loop
+                // will be considered valid
+                break; 
             }
         }
         return to_return;
