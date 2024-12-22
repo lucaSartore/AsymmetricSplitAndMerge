@@ -49,7 +49,8 @@ impl DisjointSets{
         let neighbors: Vec<_> = self.items[&c1].neighbors.iter()
             .chain(self.items[&c2].neighbors.iter())
             .filter(|x| {
-                self.items[&x].get_father(self) != new_item_id
+                self.items[x].get_father(self) != new_item_id &&
+                self.is_root_item(**x)
             })
             .map(|x| *x)
             .collect::<HashSet<_>>() // unique ids

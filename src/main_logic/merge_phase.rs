@@ -31,7 +31,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
         });
         info!("Done thread join");
 
-        self.logger.finalize_log();
+        self.logger.finalize_log()
+            .expect("loggin finalization has failed");
 
         return MainLogic {
             image: self.image,
@@ -46,6 +47,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
     pub fn send_merge_request(&mut self) -> usize {
         let mut num_requests = 0;
 
+        let mut tested_ids = HashSet::new();
         for id_a in self.state.disjoint_sets.get_root_items() {
             for id_b in self
                 .state
@@ -66,6 +68,13 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
                 if !(self.state.disjoint_sets.is_root_item(*id_a) &&
                    self.state.disjoint_sets.is_root_item(*id_b)) {
+                    continue
+                }
+
+                if !tested_ids.insert(id_a){
+                    continue
+                }
+                if !tested_ids.insert(id_b){
                     continue
                 }
 
@@ -143,27 +152,29 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             join_handlers.push(thread::spawn(move || -> Result<()> {
                 info!("thread {i} started");
                 loop {
-                    info!("thread {i} rx lock");
+                    // info!("thread {i} rx lock");
                     let rx_locked = rx.lock().map_err(|_| anyhow!("main tread has fail"))?;
-                    info!("thread {i} rx locked");
+                    // info!("thread {i} rx locked");
 
                     let (img_a, id_a, img_b, id_b) = rx_locked.recv()?;
-                    info!("thread {i} receive id=[{id_a},{id_b}]");
+                    drop(rx_locked);
+                    // info!("thread {i} receive id=[{id_a},{id_b}]");
 
                     // let merge_result = true;
                     let merge_result = merger.merge(&img_a.image, &img_b.image, &image);
-                    info!("thread {i} merge result = {:?}", merge_result);
+                    // info!("thread {i} merge result = {:?}", merge_result);
 
-                    info!("thread {i} tx lock");
+                    // info!("thread {i} tx lock");
                     let tx_lock = tx.lock().map_err(|_| anyhow!("main tread has fail"))?;
-                    info!("thread {i} tx locked");
+                    // info!("thread {i} tx locked");
 
                     tx_lock.send((merge_result, id_a, id_b))
                         .expect("main thread has reash");
+                    drop(tx_lock);
 
                     img_a.destroy();
                     img_b.destroy();
-                    info!("thread {i} successfly processed id=[{id_a},{id_b}]");
+                    // info!("thread {i} successfly processed id=[{id_a},{id_b}]");
                 }
             }));
         }
@@ -178,7 +189,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                 .merge_result_rx
                 .recv()
                 .expect("child thread has fail");
-
+    
             if !to_merge {
                 continue;
             }

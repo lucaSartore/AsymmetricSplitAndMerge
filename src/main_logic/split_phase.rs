@@ -93,6 +93,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                     info!("thread {i} rx locked");
 
                     let (img, id) = rx_locked.recv()?;
+                    drop(rx_locked);
                     info!("thread {i} receive id={id}");
 
                     let split_result = splitter.split(&img.image);
@@ -107,6 +108,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                     }else{
                         tx_lock.send(None).expect("send messages should never fail");
                     }
+                    drop(tx_lock);
                     img.destroy();
                     info!("thread {i} successfly processed id={id}");
                 }
