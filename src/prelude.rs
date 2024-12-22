@@ -23,7 +23,8 @@ pub mod merger_traits {
 pub use crate::splitter_trait::SplitterTrait;
 pub mod splitter_traits {
     pub use crate::splitter_trait::{
-        BlindSplitter
+        BlindSplitter,
+        HueStdSplitter
     };
 }
 
