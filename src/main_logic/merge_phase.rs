@@ -20,6 +20,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
             info!("start receiving split requests");
             self.receive_merge_result(num_requests);
+            self.state.disjoint_sets.clear_data();
         }
 
         drop(self.state.images_to_merge_tx);
@@ -45,41 +46,9 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
     }
 
     pub fn send_merge_request(&mut self) -> usize {
-        let mut num_requests = 0;
-
-        let mut tested_ids = HashSet::new();
-        for id_a in self.state.disjoint_sets.get_root_items() {
-            for id_b in self
-                .state
-                .disjoint_sets
-                .get_set(*id_a)
-                .expect("error merge phase")
-                .get_neighbors()
-            {
-                // only comare them based on a certain order to avoid duplication
-                if *id_b > *id_a {
-                    continue;
-                }
-
-                // do not check for stuff that has already been check
-                if self.state.already_checked_mgerges.contains(&[*id_a, *id_b]) {
-                    continue;
-                }
-
-                if !(self.state.disjoint_sets.is_root_item(*id_a) &&
-                   self.state.disjoint_sets.is_root_item(*id_b)) {
-                    continue
-                }
-
-                if !tested_ids.insert(id_a){
-                    continue
-                }
-                if !tested_ids.insert(id_b){
-                    continue
-                }
-
-                self.state.already_checked_mgerges.insert([*id_a, *id_b]);
-
+        let items_to_check = self.state.disjoint_sets.get_tuple_of_items_to_check(); 
+        let num_requests = items_to_check.len();
+        for [id_a,id_b] in items_to_check{
                 let mat_a = self
                     .state
                     .areas
@@ -98,10 +67,8 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
 
                 self.state
                     .images_to_merge_tx
-                    .send((mat_a, *id_a, mat_b, *id_b))
+                    .send((mat_a, id_a, mat_b, id_b))
                     .expect("child threads has failed");
-                num_requests += 1;
-            }
         }
         return num_requests;
     }
@@ -182,6 +149,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
     }
 
     fn receive_merge_result(&mut self, to_receive: usize) {
+        let mut to_merge_vec = Vec::new();
         for _ in 0..to_receive {
 
             let (to_merge, id_a, id_b) = self
@@ -191,20 +159,18 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                 .expect("child thread has fail");
     
             if !to_merge {
-                continue;
-            }
+                self.state.disjoint_sets.mark_as_non_neighbors(id_a, id_b)
+                .expect("receive_merge_result failed");
+            }else {
+                to_merge_vec.push([id_a,id_b]);
+            };
             
-            let new_item_id = self.state.next_area_id;
+        }
+
+        for [id_a, id_b] in to_merge_vec {
+
+            let new_item_id = self.state.next_area_id; 
             self.state.next_area_id += 1;
-
-            let id_a = self.state.disjoint_sets.get_father_of(id_a)
-                .expect("error in receive merge result");
-            let id_b = self.state.disjoint_sets.get_father_of(id_b)
-                .expect("error in receive merge result");
-
-            if id_a == id_b {
-                continue;
-            }
 
             let area_a = self
                 .state
