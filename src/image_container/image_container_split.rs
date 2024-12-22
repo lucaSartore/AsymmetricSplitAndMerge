@@ -68,7 +68,7 @@ impl ImageContainerSplit<'_> {
             let a_end = a_start + a_len;
             let b_end = b_start + b_len;
             
-            let no_overlap = a_end < b_start || b_end < a_start;
+            let no_overlap = a_end <= b_start || b_end <= a_start;
             return !no_overlap;
         }
 
