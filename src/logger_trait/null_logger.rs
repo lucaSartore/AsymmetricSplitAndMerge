@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use super::LoggerTrait;
+use anyhow::Result;
 
 /// a logger that dose nothing (and also don't impact performance..)
 pub struct NullLogger{}
@@ -17,7 +18,8 @@ impl LoggerTrait for NullLogger {
         Ok(())
     }
 
-    fn finalize_log(&mut self) {
+    fn finalize_log(&mut self) -> Result<()>  {
+        Ok(())
     }
 }
 

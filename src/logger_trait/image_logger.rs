@@ -182,5 +182,7 @@ impl LoggerTrait for ImageLogger {
 
         Ok(())
     }
-    fn finalize_log(&mut self) {}
+    fn finalize_log(&mut self) -> Result<()>  {
+        Ok(())
+    }
 }

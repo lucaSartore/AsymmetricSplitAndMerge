@@ -19,5 +19,5 @@ pub use on_disk_logger::OnDiskLogger;
 pub trait LoggerTrait{
     fn log_split(&mut self, area_to_split_id: usize, splits: [Area;2]) -> Result<()>;
     fn log_merge(&mut self, new_item_id: usize, to_merge: [usize;2]) -> Result<()>;
-    fn finalize_log(&mut self);
+    fn finalize_log(&mut self) -> Result<()>;
 }
