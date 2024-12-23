@@ -17,6 +17,7 @@ pub mod merger_traits {
     pub use crate::merger_trait::{
         BlindMerger,
         ColorBasedMerger,
+        StdMerger
     };
 }
 

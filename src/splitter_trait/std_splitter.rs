@@ -30,16 +30,12 @@ impl SplitterTrait for StdSplitter {
         ).expect("eror in huestd splitter");
 
 
-        dbg!(std);
+        // dbg!(std);
 
         let distance = std.as_slice()
             .iter().map(|x| x.powi(2))
             .sum::<f64>()
             .sqrt();
-
-        dbg!(distance);
-
-        dbg!(distance > self.std_threshold);
 
         if distance > self.std_threshold{
             return self.blind_splitter.split(image)

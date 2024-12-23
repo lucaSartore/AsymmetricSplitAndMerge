@@ -2,6 +2,8 @@ mod blind_merger;
 pub use blind_merger::BlindMerger;
 mod color_based_merger;
 pub use color_based_merger::ColorBasedMerger;
+mod std_merger;
+pub use std_merger::StdMerger;
 
 
 use crate::prelude::*;

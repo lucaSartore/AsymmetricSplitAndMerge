@@ -88,20 +88,20 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
             join_handlers.push(thread::spawn(move || -> Result<()>{
                 info!("thread {i} started");
                 loop {
-                    info!("thread {i} rx lock");
+                    // info!("thread {i} rx lock");
                     let rx_locked = rx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
-                    info!("thread {i} rx locked");
+                    // info!("thread {i} rx locked");
 
                     let (img, id) = rx_locked.recv()?;
                     drop(rx_locked);
-                    info!("thread {i} receive id={id}");
+                    // info!("thread {i} receive id={id}");
 
                     let split_result = splitter.split(&img.image);
-                    info!("thread {i} split result = {:?}", split_result);
+                    // info!("thread {i} split result = {:?}", split_result);
 
-                    info!("thread {i} tx lock");
+                    // info!("thread {i} tx lock");
                     let tx_lock = tx.lock().map_err(|_|  anyhow!("main tread has fail"))?;
-                    info!("thread {i} tx locked");
+                    // info!("thread {i} tx locked");
                     
                     if let Some((direction, split_at)) = split_result{
                         tx_lock.send(Some((direction, split_at, id))).expect("send messages should never fail");
@@ -110,7 +110,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                     }
                     drop(tx_lock);
                     img.destroy();
-                    info!("thread {i} successfly processed id={id}");
+                    // info!("thread {i} successfly processed id={id}");
                 }
             }));
         }
