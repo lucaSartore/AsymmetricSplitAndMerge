@@ -12,7 +12,7 @@ impl BlindSplitter {
 }
 
 impl SplitterTrait for BlindSplitter {
-    fn split(&self, image: &impl opencv::prelude::MatTrait) -> Option<(crate::image_container::CutDirection, i32)> {
+    fn split(&self, image: &Mat) -> Option<(crate::image_container::CutDirection, i32)> {
         let size = image.size().expect("valid image must be passed");
         if size.height > size.width{
             // split the height

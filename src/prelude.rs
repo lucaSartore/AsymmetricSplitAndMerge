@@ -24,7 +24,8 @@ pub use crate::splitter_trait::SplitterTrait;
 pub mod splitter_traits {
     pub use crate::splitter_trait::{
         BlindSplitter,
-        HueStdSplitter
+        HueStdSplitter,
+        StdSplitter
     };
 }
 

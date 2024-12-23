@@ -18,13 +18,15 @@ fn main() {
     // let i = ImageContainer::new_from_file_color("./test_images/200x100_split.jpg")
     //     .expect("test file must be present");
 
-    let splitter = splitter_traits::BlindSplitter::new(50);
+    // let splitter = splitter_traits::BlindSplitter::new(50);
+    let splitter = splitter_traits::StdSplitter::new(15, 30.);
     let merger = merger_traits::ColorBasedMerger::new(30., 30.);
-    let logger = logger_traits::OnDiskLogger::new(i.image.clone(), "./out.mp4")
-        .expect("can't create logger trait");
-    // let logger = logger_traits::OnScreenLogger::new(i.image.clone(), "log".into());
+    // let logger = logger_traits::OnDiskLogger::new(i.image.clone(), "./out.mp4")
+    //     .expect("can't create logger trait");
+    let logger = logger_traits::OnScreenLogger::new(i.image.clone(), "log".into());
     // let logger = logger_traits::NullLogger::new();
 
+     
     let logic = MainLogic::new(splitter, merger, logger, &i);
 
     let logic = logic.execute_split(4);
