@@ -19,8 +19,10 @@ fn main() {
     //     .expect("test file must be present");
 
     // let splitter = splitter_traits::BlindSplitter::new(50);
-    let splitter = splitter_traits::StdSplitter::new(6, 30.);
-    let merger = merger_traits::StdMerger::new(40.);
+    let splitter = splitter_traits::MaxDeltaSplitter::new(3,50.);
+    // let splitter = splitter_traits::StdSplitter::new(10, 30.);
+    // let merger = merger_traits::StdMerger::new(40.);
+    let merger = merger_traits::ColorBasedMerger::new(70.,250.);
     let logger = logger_traits::OnDiskLogger::new(i.image.clone(), "./out.mp4")
         .expect("can't create logger trait");
     // let logger = logger_traits::OnScreenLogger::new(i.image.clone(), "log".into());

@@ -92,12 +92,13 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
         }
         self.state.next_area_id = max_id + 1;
 
+        info!("start set as neighbors");
         for i in 0..v.len() {
             for j in (i + 1)..v.len() {
                 let (a_id, a_mat) = v[i];
                 let (b_id, b_mat) = v[j];
                 if ImageContainerSplit::are_neighbors(a_mat, b_mat) {
-                    info!("set as neighbors {a_id} {b_id}");
+                    // info!("set as neighbors {a_id} {b_id}");
                     self.state
                         .disjoint_sets
                         .set_as_neighbors(a_id, b_id)
@@ -105,6 +106,7 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                 }
             }
         }
+        info!("end set as neighbors");
     }
 
     fn launch_threads(&self, num_of_workers: usize) -> Vec<JoinHandle<Result<()>>> {
