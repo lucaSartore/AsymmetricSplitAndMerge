@@ -1,5 +1,6 @@
 use super::*;
 
+
 impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L, SplitState> {
     pub fn new(splitter: S, merger: M, logger: L, image: &'a ImageContainer) -> Self {
         let image_split = image.to_image_container_split();
@@ -168,6 +169,13 @@ impl<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait> MainLogic<'a, S, M, L
                 direction,
                 split_at
             ));
+
+            // let mut img1_big = Mat::default();
+            // resize(&img_1.image, &mut img1_big, Size::new(img_1.image.cols()*8, img_1.image.rows()*8), 0., 0., INTER_LINEAR).unwrap();
+            // let mut img2_big = Mat::default();
+            // resize(&img_2.image, &mut img2_big, Size::new(img_2.image.cols()*8, img_2.image.rows()*8), 0., 0., INTER_LINEAR).unwrap();
+            // imshow("img1", &img1_big).unwrap();
+            // imshow("img2", &img2_big).unwrap();
 
             self.logger
                 .log_split(
