@@ -12,6 +12,10 @@ pub use std_splitter::StdSplitter;
 mod max_delta_splitter;
 pub use max_delta_splitter::MaxDeltaSplitter;
 
+pub mod heuristic_asymmetric_splitter;
+pub use heuristic_asymmetric_splitter::HeuristicAsymmetricSplitter;
+
+
 /// trait that can represent different splitting strategies
 pub trait SplitterTrait: Sync + 'static{
     fn split(&self, image: &Mat) -> Option<(CutDirection, i32)>;

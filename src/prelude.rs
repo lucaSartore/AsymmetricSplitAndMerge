@@ -27,7 +27,8 @@ pub mod splitter_traits {
         BlindSplitter,
         HueStdSplitter,
         StdSplitter,
-        MaxDeltaSplitter
+        MaxDeltaSplitter,
+        HeuristicAsymmetricSplitter
     };
 }
 

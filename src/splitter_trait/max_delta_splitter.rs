@@ -22,7 +22,10 @@ impl SplitterTrait for MaxDeltaSplitter {
     fn split(&self, image: &Mat) -> Option<(CutDirection, i32)> {
         
         let mut blur = Mat::default();
-        gaussian_blur(image, &mut blur,Size::new(9, 9), 3., 0., BORDER_DEFAULT)
+
+        // note: the image cloning here is because, if the image is a slice the
+        // function will pick up items from the bordering when applying the kernel for the blur
+        gaussian_blur(&image.clone(), &mut blur,Size::new(9, 9), 3., 0., BORDER_DEFAULT)
             .expect("error in gaussian_blur");
 
         let mut mean = Scalar::default();
@@ -33,8 +36,6 @@ impl SplitterTrait for MaxDeltaSplitter {
             &mut std,
             &no_array(),
         ).expect("eror in huestd splitter");
-
-        // imshow("blur", &blur).unwrap();
 
         let average_color_mat = Mat::new_rows_cols_with_default(
             image.rows(),
