@@ -191,3 +191,32 @@ In total I have created 3 different merger implementations. They are listed belo
     that have the same color but different textures
 
 ## Results
+
+As mention in the beginning an in-depth evaluation of the performances of the algorithm, as well as a comparison with a "traditional" symmetric version of the split and merge is NOT one of the objectives of this project. However I will still provide some examples.
+
+### Real world test case
+
+The published [video](https://www.youtube.com/watch?v=ElU1I7_PCIQ) show the split and merge algorithm at work with a real world image,
+we can se that the final result is overall quite good, with only some minor over-segmentation in the border of the image
+
+It is also interesting to analyze the first few splits executed by the algorithm.
+The thing wart noting here is how well the first derivative heuristic is working in the determination of the splitting coordinates 
+
+![image](./report_images/stuff_first_few_splits.png)
+
+
+### Synthetic test cases
+
+I have also designed 4 synthetic testcases that are designed to show the potential (as well as the weaknesses) 
+of the asymmetric splitter.
+
+The 3 test cases are:
+ - image with squares, symmetric splitter: [video](https://youtu.be/ydyZKXghq9k)
+ - image with squares, asymmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=51)
+ - image with circles, symmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=61)
+ - image with circles, asymmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=106)
+
+from the video we can see that somehow intuitively the asymmetric split heuristic works better if the underlying image is mostly made of squared objects.
+
+### Performance evaluation
+
