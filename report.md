@@ -288,3 +288,25 @@ The solution to this problem has been to send split requests in batches, and to 
 split requests is acyclic. In this way I can be sure that no wasted merge is executed.
 
 ## Personal opinions on opencv-rust
+
+Since in the objectives I have listed an evaluation of the opencv-rust crate here there are two line on that.
+
+In general I did't enjoy too much using the library this is because it is a one to one port of the c++ version in rust, but this has some minor downside.
+
+For example a lot of functions in opencv have a bunch of default parameters, and rust doesn't support them, therefore every time
+you call a function you need to check the documentation to manually fill in the default parameters, making the code excessively verbose.
+
+An other problem is that pretty much every function/method can return an error (even simple stuff as the method `size` of a `Mat`)
+This combined with the verbosity of the rust error handling make writing code a bit tedious
+
+But the most important problem in my opinion is that since this is a simple wrapper there are no benefit in using rust.
+For example every function that take as input a mask has an assert that checks that the type of the mask is `CV_8UC1` (8 bit unsigned one channel)
+since if it had more channels it wouldn't had been a mask.
+
+If this were to be written natively in rust the number of channels would have been probably been part of the type, making that error unnecessary.
+
+This is not to say that the opencv-rust project is bad,
+I certainty wouldn't be able to do nothing even remotely as good.
+However my conclusion are that using this library we have to deal with most of the
+downsides of rust as well as most of the downside of c++, therefore if i had to do
+another opencv project I would probably use c++ or python.
