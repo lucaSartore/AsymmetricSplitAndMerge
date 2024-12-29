@@ -220,3 +220,27 @@ from the video we can see that somehow intuitively the asymmetric split heuristi
 
 ### Performance evaluation
 
+The performance of the algorithm are not amazing. with the real world test case tacking a few minutes
+to be executed.
+
+This was partially expected due to the complexity of the split and merge algorithm, and partially can be explained
+by the lack of optimization due to the generic structure of the algorithm.
+
+If we only want to implement one merge strategy and one split strategy many more optimization could be made.
+For example the average color of an area that has just been merged could be calculated in O(1) time if we knew
+the  average color of the two merged areas as well as the relative pixel count.
+
+However if we want to keep a "clean" structure that allow our code to be re-used for every possible merge strategy
+this optimization is not possible, and we have to re-calculate the average color every time with a cost of O(n).
+
+Another factor that influence the performance is how often some items are tested to be merged. For example assume we have 3 areas all connected to each others named `A`, `B` and `C`. We then take the following steps:
+ - Try to merge `A` and `B` but they are not compatible
+ - Try to merge `B` and `C` and they are compatible, so we merge
+ - now we haven't tested the compatibility between `C` and `A` should we do it?
+    - Option one is to NOT do it, since now `C` is merged with `B` and we already know that `A` and `B` are not compatible
+    - Option two is to do it, since in general we can't know if the fact that we have merge `B` and `C` can change the decision of the merge algorithm
+
+Ultimately I decided for option two, in order to keep my algorithm the most re-usable.
+If I were using only one merge heuristic I could know if the fact that `B` and `C` has been merged can 
+change the merge decision, but since the code is designed for maximum re-usability I can't make this optimization.
+
