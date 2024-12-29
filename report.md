@@ -105,7 +105,7 @@ pub struct ImageContainerSplit<'a> {
 ### Splitter Trait Implementation
 
 In total I have created 5 different splitter implementations. They are listed below followed by a brief description
-- `BlindSplitter`:
+- `BlindSplitter`
 
     this is a simple splitter that always split an image (up to a certain size).
     It is not a useful component by it-self however it is encapsulated into the more advanced components logic.
@@ -114,7 +114,7 @@ In total I have created 5 different splitter implementations. They are listed be
     - compare the height and width of an area to a pre-defined threshold
     - if they are both lower than it doesn't split
     - otherwise it split the longer direction in half
-- `HueStdSplitter`:
+- `HueStdSplitter`
 
     This is a splitter that is primarily based on the color of an image 
     (infact it uses the Hue component of the HSV color space)
@@ -161,3 +161,27 @@ In total I have created 5 different splitter implementations. They are listed be
     - chose to split in the point where the first derivate is maximized
     ![image](./report_images/heuristic_split.png)
 
+### Merger Trait Implementation
+In total I have created 3 different merger implementations. They are listed below followed by a brief description
+- `BlindMerger`
+
+    A simple merger that always decide to merge (used only for testing)
+- `ColorBasedMerger`
+
+    A merger that decide to merge or not based on color.
+
+    It works as follow:
+     - Calculate the average color of the image 1 and 2
+     - Calculate the distance between the two averages colors
+     - merge if the distance is lower than a threshold
+- `StdMerger`
+
+    A merger that take into consideration the difference in color as well as the
+    differences in the standard deviation fo the two areas.
+
+    It works as follow:
+     - Calculate the average color of the image 1 and 2
+     - Calculate de distance between the two colors
+     - Calculate the standard deviation for every channel (R G B) of the image 1 and 2
+     - Calculate the distance between the two standard deviations
+     - Merge only if both the color distance and the std distance are lower than their respective thresholds.
