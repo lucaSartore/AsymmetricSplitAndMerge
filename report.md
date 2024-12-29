@@ -244,3 +244,47 @@ Ultimately I decided for option two, in order to keep my algorithm the most re-u
 If I were using only one merge heuristic I could know if the fact that `B` and `C` has been merged can 
 change the merge decision, but since the code is designed for maximum re-usability I can't make this optimization.
 
+## Multi threading
+The multi threaded architecture can be divided into two separated items: The main thread and the Worker treads.
+
+The main thread is the one that handle most of the logic, it contains the split tree as well as the adjacency graph.
+The fact that is a single thread make it possible to not protect with mutexes all the aforementioned structures making them faster.
+
+The worker treas are much simpler and only execute split/merge requests that are sent in by the main tread.
+
+### Scaling
+
+the architecture uses two channels (one to send data and one to get results from the worker treads) and only tow mutexes
+(one for the worker tread's receiver and one for the sender).
+This make the architecture lightweight and make it scale decently well as seen in the table below.
+
+| Workers | Time    |
+|---------|---------|
+| 1       | 5m01s   |
+| 2       | 3m30s   |
+| 4       | 1m51s   |
+
+The main scaling issue that this architecture may have is that the main thread could become the bottleneck if the number of worker threads become really high, however this is not a problem with consumer hardware.
+
+### Main challenge with multithreading
+I wanted to also report one particular challenge that the multithreading architecture has caused, since I found it interesting
+
+Assume we have 3 areas: `A`, `B` and `C` all connected to each others,
+and assume I execute some merges with the following order
+ - `A` with `B` return `true`
+ - `B` with `C` return `true`
+ - `C` with `A` return `true`
+
+You may have noted that the third merge was a wasted calculation.
+In fact if `A` and `B` are merged and `B` and `C` are merged, then `A` and `C` are already part of the same area and don't need to be tested for merging.
+
+If the program is not using multi threading I can be sure that the result of one merge will be ready before I execute the next one,
+therefore I can skip the last step saving some time.
+
+However using multi threading means that I will need to execute multiple merge request at the same time,
+and if I sent the 3 requests at te same time I can't  take advantage of this specific optimization.
+
+The solution to this problem has been to send split requests in batches, and to make sure that in each batch the graph of the
+split requests is acyclic. In this way I can be sure that no wasted merge is executed.
+
+## Personal opinions on opencv-rust
