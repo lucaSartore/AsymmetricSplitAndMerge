@@ -1,5 +1,5 @@
 # Report
-This is the in-detail report of the project "Asymmetric split and merge"
+This is the in-detail report of the project "Asymmetric split and merge" by Luca Sartore
 
 ## Objectives
 
@@ -166,15 +166,16 @@ In total I have created 3 different merger implementations. They are listed belo
 - `BlindMerger`
 
     A simple merger that always decide to merge (used only for testing)
-- `ColorBasedMerger`
+- `StdMerger`
 
-    A merger that decide to merge or not based on color.
+    This merger works well with homogenous colors 
+    (as it try to minimize the standard deviation inside every area)
 
     It works as follow:
-     - Calculate the average color of the image 1 and 2
-     - Calculate the distance between the two averages colors
-     - merge if the distance is lower than a threshold
-- `StdMerger`
+     - Calculate what the resulting image would look like if the merge went through
+     - Calculate the standard deviation of the area
+     - merge if the standard deviation is lower than a threshold
+- `ColorBasedMerger`
 
     A merger that take into consideration the difference in color as well as the
     differences in the standard deviation fo the two areas.
@@ -185,3 +186,8 @@ In total I have created 3 different merger implementations. They are listed belo
      - Calculate the standard deviation for every channel (R G B) of the image 1 and 2
      - Calculate the distance between the two standard deviations
      - Merge only if both the color distance and the std distance are lower than their respective thresholds.
+
+    The standard deviation is used so that the program is (sometimes) able to distinguish between areas
+    that have the same color but different textures
+
+## Results
