@@ -99,3 +99,65 @@ pub struct ImageContainerSplit<'a> {
     pub width: i32,
 }
 ```
+
+## Implementations
+
+### Splitter Trait Implementation
+
+In total I have created 5 different splitter implementations. They are listed below followed by a brief description
+- `BlindSplitter`:
+
+    this is a simple splitter that always split an image (up to a certain size).
+    It is not a useful component by it-self however it is encapsulated into the more advanced components logic.
+
+    It works as follow:
+    - compare the height and width of an area to a pre-defined threshold
+    - if they are both lower than it doesn't split
+    - otherwise it split the longer direction in half
+- `HueStdSplitter`:
+
+    This is a splitter that is primarily based on the color of an image 
+    (infact it uses the Hue component of the HSV color space)
+
+    It works as follow:
+    - convert the image into the HSV color space
+    - Calculate the standard deviation of the hue component
+    - if the standard deviation is lower than a pre-defined threshold it doesn't split
+    - otherwise it split using the same logic as a `BlindSplitter`
+- `StdSplitter`
+    
+    This splitter works well with homogenous colors 
+    (as it try to minimize the standard deviation inside every area)
+
+    It works as follow:
+    - Calculate the standard deviation of the 3 components of an image (R,G,B)
+    - calculate the absolute value of the standard deviation: `sqrt(std_r^2 + std_g^2 + std_b^2)`
+    - if the standard deviation is lower than a pre-defined threshold it doesn't split
+    - otherwise it split using the same logic as a `BlindSplitter`
+- `MaxDeltaSplitter`
+
+    This splitter is also primary based on the color, however it works a bit better than `HueStdSplitter` as if the color is really close to white or black the Hue component of the HSV color space become really "usable".
+    It works by ensuring that inside an area the distance that every pixels's color has to the mean color is lower than a certain threshold. A gaussian blur is also applied at the beginning to ensure that high frequency disturbs (like for example a single black pixel in a red area) don't singlehandedly force a split.
+
+    It works as follow:
+    - Apply a gaussian blur to the image
+    - Calculate the average color
+    - Calculate the max delta: 
+    $$
+    \text{MaxDelta} \coloneqq \max\left\{ \left|| \text{Image}[x, y] - \text{AverageColor} \right|| \;\big|\; x, y \in \text{Image} \right\}
+    $$
+    - if the max delta is lower than a pre-defined threshold it doesn't split
+    - otherwise it split using the same logic as a `BlindSplitter`
+
+- `HeuristicAsymmetricSplitter`
+
+    This splitter try to split an image in the optimal point, and to do so it uses a simple heuristic based on the partial derivative of the image. This splitter doesn't have an internal way of deciding wether to split or not,
+    it instead uses the logic from another splitter of choice (like for example `MaxDeltaSplitter`)
+
+    It works as follow:
+
+    - calculate the partial derivate for x or y axis
+    - reduce the image into a single row or column    
+    - chose to split in the point where the first derivate is maximized
+    ![image](./report_images/heuristic_split.png)
+
