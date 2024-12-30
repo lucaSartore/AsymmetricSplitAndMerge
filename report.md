@@ -1,78 +1,78 @@
-# Report
-This is the in-detail report of the project "Asymmetric split and merge" by Luca Sartore
+# Report  
+This is the detailed report of the project "Asymmetric Split and Merge" by Luca Sartore.
 
-## Objectives
+## Objectives  
 
-The main objective of this project is to create a fully functional split and merge implementation,
-with a small change to the original algorithm. I want to allow for "Asymmetric" splitting,
-this means that when an area is split in half the two resulting pieces can be of any size relative to each other
-(instead of been forced to be of the same size).
+The main objective of this project is to create a fully functional split-and-merge implementation with a small change to the original algorithm. I aim to allow for "asymmetric" splitting, meaning that when an area is split in half, the two resulting pieces can have any size relative to each other (instead of being forced to be the same size).  
 
-I have also posed to myself a few secondary objective for this project:
- - Make the implementation multithreaded
- - Make the code as reusable as possible 
- - evaluating the [opencv-rust](https://github.com/twistedfall/opencv-rust) crate, that provide rust bindings for open-cv
+I have also set a few secondary objectives for this project:  
+- Make the implementation multithreaded.  
+- Ensure the code is as reusable as possible.  
+- Evaluate the [opencv-rust](https://github.com/twistedfall/opencv-rust) crate, which provides Rust bindings for OpenCV.  
 
-The choice of rust was made for the multithreading-first approach of the language,
-as well as the fact that I had already used opencv a lot in python and c++ and I wanted to try something new
-(See [Puzzle solver](https://github.com/lucaSartore/PuzzleSolver) and [RoboCup junior robot](https://github.com/lucaSartore/Robocup-Rescue-Line-simulation) if interested)
+The choice of Rust was motivated by the language's multithreading-first approach and the fact that I had already used OpenCV extensively in Python and C++ therefore I wanted to try something new.  
+(See [Puzzle Solver](https://github.com/lucaSartore/PuzzleSolver) and [RoboCup Junior Robot](https://github.com/lucaSartore/Robocup-Rescue-Line-simulation) for related projects.)  
 
-It is important to note that an in depth comparison between my version of split and merge (with the asymmetric split)
-and the traditional one, is NOT one of the objective of this project. This is because I splitted the work with another
-student that will implement the traditional version of split and merge and will provide a comparison.
-However I have still provided 2 small examples where the difference between the various algorithms can be observed.
+It is important to note that an in-depth comparison between my version of split-and-merge (with asymmetric splitting) and the traditional one is *not* one of the objectives of this project. This is because I collaborated with another student who is implementing the traditional version of split-and-merge and will provide the comparison. However, I have still included two small examples where the differences between the algorithms can be observed.  
 
-## High level code overview
 
-To maximize cote re-usability I have split the logic into some traits (rust's version of an interface).
-In particular I have defined a `Splitter` trait a `Merger` trait for the execution of the project, as well
-as a `Logger` trait that is useful to generate animations, debug or to be used inside integration testing.
+## High-Level Code Overview  
 
-### Splitter trait
+To maximize code reusability, I have split the logic into several traits (Rust's version of interfaces).  
+In particular, I have defined a `Splitter` trait, a `Merger` trait, and a `Logger` trait for different aspects of the implementation:  
+- The `Splitter` trait handles the splitting logic.  
+- The `Merger` trait defines the merging logic.  
+- The `Logger` trait is used to generate animations, debug outputs, or integration testing logs.  
 
-The splitter trait is defined as one single function that take as input a non mutable reference to an image, and perform some calculation to defined if it need to split.
+### Splitter Trait  
 
-If the result is negative (no splitting is needed) the function shall return `None`
+The `Splitter` trait is defined as a single function that takes a non-mutable reference to an image as input and performs calculations to determine whether the area needs to be split.  
 
-Otherwise the function can return a split direction (x or y axis) as well as in `i32` (the relative coordinate of the split)
+- If no splitting is needed, the function should return `None`.  
+- Otherwise, the function should return a split direction (`x` or `y` axis) and an `i32` value (the relative coordinate of the split).  
+
 ```rust
-pub trait SplitterTrait: Sync + 'static{
+pub trait SplitterTrait: Sync + 'static {
     fn split(&self, image: &Mat) -> Option<(CutDirection, i32)>;
 }
-```
-### Merger trait
-The merger trait is even simpler, it takes as input 2 binary masks as well as an image and returns a boolean.
+```  
 
-The image must be the original colored image, and the two masks identify the two areas that we want to merge.
-The return value is True if the two areas can be merged false otherwise.
+### Merger Trait  
+
+The `Merger` trait is even simpler. It takes two binary masks and an image as input and returns a boolean value.  
+
+- The image must be the original colored image.  
+- The two masks identify the areas to be merged.  
+- The function returns `true` if the areas can be merged and `false` otherwise.  
 
 ```rust
-pub trait MergerTrait: Sync + 'static{
+pub trait MergerTrait: Sync + 'static {
     fn merge(&self, mask_a: &Mat, mask_b: &Mat, image: &Mat) -> bool;
 }
-```
+```  
 
+### Logger Trait  
 
-### Logger trait
-As the name imply this trait's objective is to log every action. this is what has been used to generate the videos that
-will be shown later, but it has also been used for debugging and for automated integration tests
+As the name implies, the `Logger` trait is responsible for logging actions. It is used to:  
+- Generate videos for demonstration.  
+- Debug the algorithm.  
+- Support automated integration tests.  
+
 ```rust
-pub trait LoggerTrait{
-    fn log_split(&mut self, area_to_split_id: usize, splits: [Area;2]) -> Result<()>;
-    fn log_merge(&mut self, new_item_id: usize, to_merge: [usize;2]) -> Result<()>;
+pub trait LoggerTrait {
+    fn log_split(&mut self, area_to_split_id: usize, splits: [Area; 2]) -> Result<()>;
+    fn log_merge(&mut self, new_item_id: usize, to_merge: [usize; 2]) -> Result<()>;
     fn finalize_log(&mut self) -> Result<()>;
 }
-```
+```  
 
-### Main logic
-All the logic that is not inside the various trait is encapsulated inside the `MainLogic` struct, this is a generic struct
-with 4 generic parameters: `S`, `M`, `L` and `ST`.
+### Main Logic  
 
-Of these the first 3 are implementation of the trait seen above, this allow the main logic to be re-usable with 
-different implementations of the splitter trait, fulfilling the objective of code re-utilization.
+The main logic, not covered by the traits, is encapsulated in the `MainLogic` struct. This is a generic struct with four parameters: `S`, `M`, `L`, and `ST`.  
 
-The fourth generic parameter `ST` is the state the splitter is in (can be Splitting, Merging or Finished)
-and is used to implement a `Typestate Pattern`.
+- The first three parameters represent implementations of the traits described above (`SplitterTrait`, `MergerTrait`, and `LoggerTrait`). This design ensures that the main logic is reusable with different implementations.  
+- The fourth parameter, `ST`, represents the current state of the splitter (e.g., Splitting, Merging, or Finished) and is used to implement a **Typestate Pattern**.  
+
 ```rust
 pub struct MainLogic<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait, ST: SplitMergeState> {
     splitter: S,
@@ -82,14 +82,15 @@ pub struct MainLogic<'a, S: SplitterTrait, M: MergerTrait, L: LoggerTrait, ST: S
     image: &'a ImageContainer,
     split_tree: Vec<SplitTree<'a>>,
 }
-```
+```  
 
-### Image container split
-The last important structure I want to explain is the `ImageContainerSplit` struct, this is used 
-to represent a rectangular portion of the original image.
-Every time the algorithm perform a split it creates 2 new `ImageContainerSplit`. The underlying
-implementation is made in a way that the split operation can be a `O(1)` operation 
-(as it reference the original image instead of copying it)
+### Image Container Split  
+
+The last key structure is the `ImageContainerSplit` struct. This represents a rectangular portion of the original image.  
+
+- Each split operation creates two new `ImageContainerSplit` instances.  
+- The implementation references the original image instead of copying it, making the split operation an **O(1)** operation.  
+
 ```rust
 pub struct ImageContainerSplit<'a> {
     pub image: BoxedRef<'a, Mat>,
@@ -104,159 +105,155 @@ pub struct ImageContainerSplit<'a> {
 
 ### Splitter Trait Implementation
 
-In total I have created 5 different splitter implementations. They are listed below followed by a brief description
-- `BlindSplitter`
+In total, I have created five different splitter implementations. They are listed below, followed by a brief description:
 
-    this is a simple splitter that always split an image (up to a certain size).
-    It is not a useful component by it-self however it is encapsulated into the more advanced components logic.
+- **`BlindSplitter`**  
 
-    It works as follow:
-    - compare the height and width of an area to a pre-defined threshold
-    - if they are both lower than it doesn't split
-    - otherwise it split the longer direction in half
-- `HueStdSplitter`
+    This is a simple splitter that always splits an image (up to a certain size).  
+    It is not a useful component by itself; however, it is encapsulated into the logic of more advanced components.  
 
-    This is a splitter that is primarily based on the color of an image 
-    (infact it uses the Hue component of the HSV color space)
+    **It works as follows:**  
+    - Compare the height and width of an area to a predefined threshold.  
+    - If both dimensions are smaller than the threshold, it doesn't split.  
+    - Otherwise, it splits the longer dimension in half.  
 
-    It works as follow:
-    - convert the image into the HSV color space
-    - Calculate the standard deviation of the hue component
-    - if the standard deviation is lower than a pre-defined threshold it doesn't split
-    - otherwise it split using the same logic as a `BlindSplitter`
-- `StdSplitter`
-    
-    This splitter works well with homogenous colors 
-    (as it try to minimize the standard deviation inside every area)
+- **`HueStdSplitter`**  
 
-    It works as follow:
-    - Calculate the standard deviation of the 3 components of an image (R,G,B)
-    - calculate the absolute value of the standard deviation: `sqrt(std_r^2 + std_g^2 + std_b^2)`
-    - if the standard deviation is lower than a pre-defined threshold it doesn't split
-    - otherwise it split using the same logic as a `BlindSplitter`
-- `MaxDeltaSplitter`
+    This splitter is primarily based on the color of an image (specifically, the Hue component of the HSV color space).  
 
-    This splitter is also primary based on the color, however it works a bit better than `HueStdSplitter` as if the color is really close to white or black the Hue component of the HSV color space become really "usable".
-    It works by ensuring that inside an area the distance that every pixels's color has to the mean color is lower than a certain threshold. A gaussian blur is also applied at the beginning to ensure that high frequency disturbs (like for example a single black pixel in a red area) don't singlehandedly force a split.
+    **It works as follows:**  
+    - Convert the image into the HSV color space.  
+    - Calculate the standard deviation of the Hue component.  
+    - If the standard deviation is lower than a predefined threshold, it doesn't split.  
+    - Otherwise, it splits using the same logic as a `BlindSplitter`.  
 
-    It works as follow:
-    - Apply a gaussian blur to the image
-    - Calculate the average color
-    - Calculate the max delta: 
-    $$
-    \text{MaxDelta} \coloneqq \max\left\{ \left|| \text{Image}[x, y] - \text{AverageColor} \right|| \;\big|\; x, y \in \text{Image} \right\}
-    $$
-    - if the max delta is lower than a pre-defined threshold it doesn't split
-    - otherwise it split using the same logic as a `BlindSplitter`
+- **`StdSplitter`**  
 
-- `HeuristicAsymmetricSplitter`
+    This splitter works well with homogeneous colors (as it tries to minimize the standard deviation inside each area).  
 
-    This splitter try to split an image in the optimal point, and to do so it uses a simple heuristic based on the partial derivative of the image. This splitter doesn't have an internal way of deciding wether to split or not,
-    it instead uses the logic from another splitter of choice (like for example `MaxDeltaSplitter`)
+    **It works as follows:**  
+    - Calculate the standard deviation of the three components of an image (R, G, B).  
+    - Compute the absolute value of the combined standard deviation:  
+      \[
+      \sqrt{\text{std}_r^2 + \text{std}_g^2 + \text{std}_b^2}
+      \]
+    - If the standard deviation is lower than a predefined threshold, it doesn't split.  
+    - Otherwise, it splits using the same logic as a `BlindSplitter`.  
 
-    It works as follow:
+- **`MaxDeltaSplitter`**  
 
-    - calculate the partial derivate for x or y axis
-    - reduce the image into a single row or column    
-    - chose to split in the point where the first derivate is maximized
+    This splitter is also primarily based on color but works better than `HueStdSplitter` in cases where the color is very close to white or black (as the Hue component of the HSV color space becomes less reliable in these cases).  
+    It ensures that the distance of every pixel's color from the mean color within an area is below a certain threshold. A Gaussian blur is applied at the beginning to handle high-frequency noise (e.g., a single black pixel in a red area).  
+
+    **It works as follows:**  
+    - Apply a Gaussian blur to the image.  
+    - Calculate the average color.  
+    - Calculate the maximum delta:  
+      \[
+      \text{MaxDelta} = \max \left( \lVert \text{Image}[x, y] - \text{AverageColor} \rVert \; \big| \; x, y \in \text{Image} \right)
+      \]
+    - If the maximum delta is lower than a predefined threshold, it doesn't split.  
+    - Otherwise, it splits using the same logic as a `BlindSplitter`.  
+
+- **`HeuristicAsymmetricSplitter`**  
+
+    This splitter tries to split an image at the optimal point using a simple heuristic based on the partial derivative of the image. It doesn't have an internal decision mechanism for whether to split or not, relying instead on the logic of another splitter (e.g., `MaxDeltaSplitter`).  
+
+    **It works as follows:**  
+    - Calculate the partial derivative along the x or y axis.  
+    - Reduce the image to a single row or column.  
+    - Choose to split at the point where the first derivative is maximized.  
+
     ![image](./report_images/heuristic_split.png)
 
-### Merger Trait Implementation
-In total I have created 3 different merger implementations. They are listed below followed by a brief description
-- `BlindMerger`
+### Merger Trait Implementation  
 
-    A simple merger that always decide to merge (used only for testing)
-- `StdMerger`
+In total, I have created three different merger implementations. They are listed below, followed by a brief description:  
 
-    This merger works well with homogenous colors 
-    (as it try to minimize the standard deviation inside every area)
+- **`BlindMerger`**  
 
-    It works as follow:
-     - Calculate what the resulting image would look like if the merge went through
-     - Calculate the standard deviation of the area
-     - merge if the standard deviation is lower than a threshold
-- `ColorBasedMerger`
+    A simple merger that always decides to merge (used only for testing).  
 
-    A merger that take into consideration the difference in color as well as the
-    differences in the standard deviation fo the two areas.
+- **`StdMerger`**  
 
-    It works as follow:
-     - Calculate the average color of the image 1 and 2
-     - Calculate de distance between the two colors
-     - Calculate the standard deviation for every channel (R G B) of the image 1 and 2
-     - Calculate the distance between the two standard deviations
-     - Merge only if both the color distance and the std distance are lower than their respective thresholds.
+    This merger works well with homogeneous colors (as it tries to minimize the standard deviation inside each area).  
 
-    The standard deviation is used so that the program is (sometimes) able to distinguish between areas
-    that have the same color but different textures
+    **It works as follows:**  
+    - Simulate the result of merging two areas.  
+    - Calculate the standard deviation of the combined area.  
+    - Merge if the standard deviation is lower than a threshold.  
+
+- **`ColorBasedMerger`**  
+
+    A merger that considers the differences in color and the standard deviations of the two areas.  
+
+    **It works as follows:**  
+    - Calculate the average color of areas 1 and 2.  
+    - Calculate the distance between the two colors.  
+    - Compute the standard deviation for each channel (R, G, B) in areas 1 and 2.  
+    - Calculate the distance between the two standard deviations.  
+    - Merge only if both the color distance and the standard deviation distance are below their respective thresholds.  
+
+    The standard deviation is used to help distinguish between areas with the same color but different textures.  
 
 ## Results
 
-As mention in the beginning an in-depth evaluation of the performances of the algorithm, as well as a comparison with a "traditional" symmetric version of the split and merge is NOT one of the objectives of this project. However I will still provide some examples.
+As mentioned in the beginning, an in-depth evaluation of the performance of the algorithm, as well as a comparison with a "traditional" symmetric version of the split-and-merge approach, is NOT one of the objectives of this project. However, I will still provide some examples.
 
-### Real world test case
+### Real-world test case
 
-The published [video](https://www.youtube.com/watch?v=ElU1I7_PCIQ) show the split and merge algorithm at work with a real world image,
-we can se that the final result is overall quite good, with only some minor over-segmentation in the border of the image
+The published [video](https://www.youtube.com/watch?v=ElU1I7_PCIQ) shows the split-and-merge algorithm at work with a real-world image.  
+We can see that the final result is overall quite good, with only some minor over-segmentation at the borders of the image.
 
-It is also interesting to analyze the first few splits executed by the algorithm.
-The thing wart noting here is how well the first derivative heuristic is working in the determination of the splitting coordinates 
+It is also interesting to analyze the first few splits executed by the algorithm.  
+What’s worth noting here is how well the first derivative heuristic works in determining the splitting coordinates.
 
 ![image](./report_images/stuff_first_few_splits.png)
 
-
 ### Synthetic test cases
 
-I have also designed 4 synthetic testcases that are designed to show the potential (as well as the weaknesses) 
-of the asymmetric splitter.
+I have also designed four synthetic test cases that are intended to demonstrate the potential (as well as the weaknesses) of the asymmetric splitter.
 
-The 3 test cases are:
- - image with squares, symmetric splitter: [video](https://youtu.be/ydyZKXghq9k)
- - image with squares, asymmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=51)
- - image with circles, symmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=61)
- - image with circles, asymmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=106)
+The test cases are:
+- Image with squares, symmetric splitter: [video](https://youtu.be/ydyZKXghq9k)
+- Image with squares, asymmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=51)
+- Image with circles, symmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=61)
+- Image with circles, asymmetric splitter: [video](https://youtu.be/ydyZKXghq9k?t=106)
 
-from the video we can see that somehow intuitively the asymmetric split heuristic works better if the underlying image is mostly made of squared objects.
+From the videos, we can see that the asymmetric split heuristic works better when the underlying image is primarily composed of square objects.
 
 ### Performance evaluation
 
-The performance of the algorithm are not amazing. with the real world test case tacking a few minutes
-to be executed.
+The performance of the algorithm is not impressive, with the real-world test case taking a few minutes to execute.
 
-This was partially expected due to the complexity of the split and merge algorithm, and partially can be explained
-by the lack of optimization due to the generic structure of the algorithm.
+This was partially expected due to the complexity of the split-and-merge algorithm. It can also be explained by the lack of optimization due to the generic structure of the algorithm.
 
-If we only want to implement one merge strategy and one split strategy many more optimization could be made.
-For example the average color of an area that has just been merged could be calculated in O(1) time if we knew
-the  average color of the two merged areas as well as the relative pixel count.
+If we were to implement only one merge strategy and one split strategy, many optimizations could be made.  
+For example, the average color of an area that has just been merged could be calculated in \(O(1)\) time if we knew the average color of the two merged areas and their relative pixel counts.
 
-However if we want to keep a "clean" structure that allow our code to be re-used for every possible merge strategy
-this optimization is not possible, and we have to re-calculate the average color every time with a cost of O(n).
+However, if we aim to maintain a "clean" structure that allows our code to be reused for every possible merge strategy, this optimization is not possible. In such cases, we must recalculate the average color each time at a cost of \(O(n)\).
 
-Another factor that influence the performance is how often some items are tested to be merged. For example assume we have 3 areas all connected to each others named `A`, `B` and `C`. We then take the following steps:
- - Try to merge `A` and `B` but they are not compatible
- - Try to merge `B` and `C` and they are compatible, so we merge
- - now we haven't tested the compatibility between `C` and `A` should we do it?
-    - Option one is to NOT do it, since now `C` is merged with `B` and we already know that `A` and `B` are not compatible
-    - Option two is to do it, since in general we can't know if the fact that we have merge `B` and `C` can change the decision of the merge algorithm
+Another factor influencing performance is how often items are tested for merging. For example, consider three areas—`A`, `B`, and `C`—that are all connected to one another. The steps our algorithm preform could be:
+1. Try to merge `A` and `B`, but they are not compatible.
+2. Try to merge `B` and `C`, and they are compatible, so they are merged.
+3. Should we now test the compatibility between `C` and `A`?
+   - Option one: Do NOT test, since `C` is now merged with `B`, and we already know that `A` and `B` are not compatible.
+   - Option two: Test, since merging `B` and `C` could change the merge decision for `A` (since we don't know exactly what the merge strategy is, we can't exclude that the previous merge has changed something).
 
-Ultimately I decided for option two, in order to keep my algorithm the most re-usable.
-If I were using only one merge heuristic I could know if the fact that `B` and `C` has been merged can 
-change the merge decision, but since the code is designed for maximum re-usability I can't make this optimization.
+Ultimately, I chose option two to make the algorithm as reusable as possible. If only one merge strategy were being used, we could determine whether merging `B` and `C` would affect the decision for `A`. However, since the code is designed for maximum reusability, this optimization isn’t feasible.
 
-## Multi threading
-The multi threaded architecture can be divided into two separated items: The main thread and the Worker treads.
+## Multithreading
 
-The main thread is the one that handle most of the logic, it contains the split tree as well as the adjacency graph.
-The fact that is a single thread make it possible to not protect with mutexes all the aforementioned structures making them faster.
+The multithreaded architecture consists of two main components: the main thread and worker threads.
 
-The worker treas are much simpler and only execute split/merge requests that are sent in by the main tread.
+The main thread handles most of the logic. It contains the split tree and the adjacency graph. Since it is a single thread, we can avoid protecting these structures with mutexes, which enhances performance.
+
+The worker threads are simpler and only execute split/merge requests sent by the main thread.
 
 ### Scaling
 
-the architecture uses two channels (one to send data and one to get results from the worker treads) and only tow mutexes
-(one for the worker tread's receiver and one for the sender).
-This make the architecture lightweight and make it scale decently well as seen in the table below.
+The architecture uses two channels (one for sending data and one for receiving results from the worker threads) and only two mutexes (one for the worker thread’s receiver and one for the sender).  
+This lightweight design scales reasonably well, as shown in the table below:
 
 | Workers | Time    |
 |---------|---------|
@@ -264,49 +261,33 @@ This make the architecture lightweight and make it scale decently well as seen i
 | 2       | 3m30s   |
 | 4       | 1m51s   |
 
-The main scaling issue that this architecture may have is that the main thread could become the bottleneck if the number of worker threads become really high, however this is not a problem with consumer hardware.
+The main scaling issue with this architecture is that the main thread could become a bottleneck if the number of worker threads increases significantly. However, this is not a problem with consumer-grade hardware.
 
 ### Main challenge with multithreading
-I wanted to also report one particular challenge that the multithreading architecture has caused, since I found it interesting
 
-Assume we have 3 areas: `A`, `B` and `C` all connected to each others,
-and assume I execute some merges with the following order
- - `A` with `B` return `true`
- - `B` with `C` return `true`
- - `C` with `A` return `true`
+One interesting challenge with the multithreading architecture involved optimizing merge requests.
 
-You may have noted that the third merge was a wasted calculation.
-In fact if `A` and `B` are merged and `B` and `C` are merged, then `A` and `C` are already part of the same area and don't need to be tested for merging.
+Consider three areas—`A`, `B`, and `C`—that are all connected to one another. Assume the following merges occur:
+1. `A` with `B` returns `true`.
+2. `B` with `C` returns `true`.
+3. `C` with `A` returns `true`.
 
-If the program is not using multi threading I can be sure that the result of one merge will be ready before I execute the next one,
-therefore I can skip the last step saving some time.
+The third merge is unnecessary because `A` and `C` are already part of the same area after the first two merges.
 
-However using multi threading means that I will need to execute multiple merge request at the same time,
-and if I sent the 3 requests at te same time I can't  take advantage of this specific optimization.
+In a single-threaded program, the result of one merge would be ready before executing the next one, allowing us to skip the last step. However, with multithreading, multiple merge requests can be executed simultaneously, and we may waste time on unnecessary calculations.
 
-The solution to this problem has been to send split requests in batches, and to make sure that in each batch the graph of the
-split requests is acyclic. In this way I can be sure that no wasted merge is executed.
+To solve this, I send merge requests in batches, ensuring that each batch forms an acyclic graph of split requests. This guarantees no wasted merges.
 
-## Personal opinions on opencv-rust
+## Personal opinions on `opencv-rust`
 
-Since in the objectives I have listed an evaluation of the opencv-rust crate here there are two line on that.
+Since one of the objectives was to evaluate the `opencv-rust` crate, here are my thoughts:
 
-In general I did't enjoy too much using the library this is because it is a one to one port of the c++ version in rust, but this has some minor downside.
+In general, I did not enjoy using the library. It is a one-to-one port of the C++ version to Rust, which has some minor drawbacks.
 
-For example a lot of functions in opencv have a bunch of default parameters, and rust doesn't support them, therefore every time
-you call a function you need to check the documentation to manually fill in the default parameters, making the code excessively verbose.
+For example, many functions in OpenCV have default parameters, but Rust doesn’t support them. This means that every time you call a function, you need to consult the documentation to manually fill in the default parameters, making the code excessively verbose.
 
-An other problem is that pretty much every function/method can return an error (even simple stuff as the method `size` of a `Mat`)
-This combined with the verbosity of the rust error handling make writing code a bit tedious
+Another issue is that almost every function/method can return an error (even simple ones like the `size` method of a `Mat`). This, combined with Rust’s verbose error-handling mechanisms, makes writing code tedious.
 
-But the most important problem in my opinion is that since this is a simple wrapper there are no benefit in using rust.
-For example every function that take as input a mask has an assert that checks that the type of the mask is `CV_8UC1` (8 bit unsigned one channel)
-since if it had more channels it wouldn't had been a mask.
+Most importantly, since this is just a wrapper, there are no significant benefits to using Rust. For instance, every function that takes a mask as input asserts that the mask’s type is `CV_8UC1` (8-bit unsigned, one channel). In a Rust-native implementation, the number of channels could be part of the type of the image, eliminating such runtime checks and potential error.
 
-If this were to be written natively in rust the number of channels would have been probably been part of the type, making that error unnecessary.
-
-This is not to say that the opencv-rust project is bad,
-I certainty wouldn't be able to do nothing even remotely as good.
-However my conclusion are that using this library we have to deal with most of the
-downsides of rust as well as most of the downside of c++, therefore if i had to do
-another opencv project I would probably use c++ or python.
+This is not to say the `opencv-rust` project is bad. I certainly couldn’t create anything remotely as good. However, my conclusion is that using this library forces you to deal with the downsides of both Rust and C++. For future OpenCV projects, I would likely use C++ or Python instead.
