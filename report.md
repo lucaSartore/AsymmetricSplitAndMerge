@@ -1,5 +1,35 @@
-# Report  
+# Signal, Image and Video: Final project report - Asymmetric Split and Merge
+
 This is the detailed report of the project "Asymmetric Split and Merge" by Luca Sartore.
+
+## Table of content
+- [Objectives](#objectives)
+- [High-Level Code Overview](#high-level-code-overview)
+  - [Splitter Trait](#splitter-trait)
+  - [Merger Trait](#merger-trait)
+  - [Logger Trait](#logger-trait)
+  - [Main Logic](#main-logic)
+  - [Image Container Split](#image-container-split)
+- [Implementations](#implementations)
+  - [Splitter Trait Implementations](#splitter-trait-implementation)
+    - [BlindSplitter](#blindsplitter)
+    - [HueStdSplitter](#huestdsplitter)
+    - [StdSplitter](#stdsplitter)
+    - [MaxDeltaSplitter](#maxdeltasplitter)
+    - [HeuristicAsymmetricSplitter](#heuristicasymmetricsplitter)
+  - [Merger Trait Implementations](#merger-trait-implementation)
+    - [BlindMerger](#blindmerger)
+    - [StdMerger](#stdmerger)
+    - [ColorBasedMerger](#colorbasedmerger)
+- [Results](#results)
+  - [Real-World Test Case](#real-world-test-case)
+  - [Synthetic Test Cases](#synthetic-test-cases)
+  - [Performance Evaluation](#performance-evaluation)
+- [Multithreading](#multithreading)
+  - [Scaling](#scaling)
+  - [Main Challenge with Multithreading](#main-challenge-with-multithreading)
+- [Personal Opinions on opencv-rust](#personal-opinions-on-opencv-rust)
+
 
 ## Objectives  
 
