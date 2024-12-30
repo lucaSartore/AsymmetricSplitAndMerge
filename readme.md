@@ -4,6 +4,10 @@ This repository contain a Rust-based multithreaded implementation of the [split 
 
 The algorithm is designed using a generic structure, therefore all the multithreading logic can be easily reused with different Merging/Splitting factions
 
+## Report
+
+If you are interested about the technical aspects of the project you can check out the [report](./report.md)
+
 ## Demo video
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/ElU1I7_PCIQ/0.jpg)](https://www.youtube.com/watch?v=ElU1I7_PCIQ)
 
