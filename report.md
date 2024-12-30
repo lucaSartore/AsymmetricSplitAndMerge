@@ -133,10 +133,7 @@ In total, I have created five different splitter implementations. They are liste
 
     **It works as follows:**  
     - Calculate the standard deviation of the three components of an image (R, G, B).  
-    - Compute the absolute value of the combined standard deviation:  
-      \[
-      \sqrt{\text{std}_r^2 + \text{std}_g^2 + \text{std}_b^2}
-      \]
+    - Compute the absolute value of the combined standard deviation:  $\text{std}_{abs}=\sqrt{\text{std}_r^2 + \text{std}_g^2 + \text{std}_b^2} $
     - If the standard deviation is lower than a predefined threshold, it doesn't split.  
     - Otherwise, it splits using the same logic as a `BlindSplitter`.  
 
@@ -149,9 +146,9 @@ In total, I have created five different splitter implementations. They are liste
     - Apply a Gaussian blur to the image.  
     - Calculate the average color.  
     - Calculate the maximum delta:  
-      \[
+      $$
       \text{MaxDelta} = \max \left( \lVert \text{Image}[x, y] - \text{AverageColor} \rVert \; \big| \; x, y \in \text{Image} \right)
-      \]
+      $$
     - If the maximum delta is lower than a predefined threshold, it doesn't split.  
     - Otherwise, it splits using the same logic as a `BlindSplitter`.  
 
@@ -233,7 +230,7 @@ For example, the average color of an area that has just been merged could be cal
 
 However, if we aim to maintain a "clean" structure that allows our code to be reused for every possible merge strategy, this optimization is not possible. In such cases, we must recalculate the average color each time at a cost of \(O(n)\).
 
-Another factor influencing performance is how often items are tested for merging. For example, consider three areas—`A`, `B`, and `C`—that are all connected to one another. The steps our algorithm preform could be:
+Another factor influencing performance is how often items are tested for merging. For example, consider three areas `A`, `B`, and `C` that are all connected to one another. The steps our algorithm preform could be:
 1. Try to merge `A` and `B`, but they are not compatible.
 2. Try to merge `B` and `C`, and they are compatible, so they are merged.
 3. Should we now test the compatibility between `C` and `A`?
@@ -267,7 +264,7 @@ The main scaling issue with this architecture is that the main thread could beco
 
 One interesting challenge with the multithreading architecture involved optimizing merge requests.
 
-Consider three areas—`A`, `B`, and `C`—that are all connected to one another. Assume the following merges occur:
+Consider three areas `A`, `B`, and `C` that are all connected to one another. Assume the following merges occur:
 1. `A` with `B` returns `true`.
 2. `B` with `C` returns `true`.
 3. `C` with `A` returns `true`.
