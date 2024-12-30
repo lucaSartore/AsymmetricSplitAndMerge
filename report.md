@@ -145,10 +145,9 @@ In total, I have created five different splitter implementations. They are liste
     **It works as follows:**  
     - Apply a Gaussian blur to the image.  
     - Calculate the average color.  
-    - Calculate the maximum delta:  
-      $$
-      \text{MaxDelta} = \max \left( \{\lVert \text{Image}[x, y] - \text{AverageColor} \rVert \; \big| \; (x, y) \in \text{Image} \}\right)
-      $$
+    - Calculate the maximum delta:
+
+      $$\text{MaxDelta} = \max \left( \{\lVert \text{Image}[x, y] - \text{AverageColor} \rVert \big| (x, y) \in \text{Image} \}\right)$$
     - If the maximum delta is lower than a predefined threshold, it doesn't split.  
     - Otherwise, it splits using the same logic as a `BlindSplitter`.  
 
